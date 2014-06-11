@@ -1,0 +1,40 @@
+{%extends "page.html"%}
+{%block title%}トップ{%endblock%}
+
+{%block contents%}
+{% raw %}
+<div style="margin-top:1em;" ng-controller="IndexController">
+<h3>利用可能な共有フォルダ</h3>
+<dl class="dl-horizontal">
+{%for share in shares%}
+  <dt><big>{%if not share.guest_ok %}<span class="glyphicon glyphicon-lock"></span> {%endif%}<a href="{{share.name}}/">{{share.name}} <span class="glyphicon glyphicon-folder-close"></span></a></big></dt>
+  <dd>{{share.comment}} (検索可能ファイル数{{counts[share.name]}}件) {%if g.eden%} <a class="btn btn-success btn-xs" href="file://///{{request.environ["SERVER_NAME"]}}/{{share.name}}">エクスプローラで開く</a> <a data-toggle="modal" href="#iehelp"><span class="glyphicon glyphicon-question-sign"></span></a>{%endif%}</dd>
+{%endfor%}
+</dl>
+
+{%if g.eden%}{%include "iehelp.html"%}{%endif%}
+
+<h3>システム情報</h3>
+<h4>CPU負荷</h4>
+<table class="table">
+  <thead>
+    <tr><th>直近</th><th>5分間平均</th><th>10分間平均</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td ng-repeat="item in info.loadavg">
+        <div class="alert {%if item > 3.0 %}alert-danger{%elif item > 1.0 %}alert-warning{%else%}alert-success{%endif%}">{{item * 100}}%</div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h4>ディスク容量</h4>
+<p class="text-center">総容量: {{info.capacity.total[0]}}</p>
+<progress style="height:3em;">
+  <bar value="info.capacity.used[1]" type="warning">使用中 {{info.capacity.used[0]}}<br/>({{info.capacity.used[1]}}%)</bar>
+  <bar value="info.capacity.free[1]" type="success">空き {{info.capacity.free[0]}}<br/>({{info.capacity.free[1]}}%)</bar>
+</progress>
+
+</div>
+{%endraw%}
+{%endblock%}

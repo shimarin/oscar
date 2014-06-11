@@ -2,7 +2,9 @@ import os
 
 import oscar
 
-name = "init"
+def parser_setup(parser):
+    parser.add_argument("-d", "--base-dir", default=".")
+    parser.set_defaults(func=run,name="init")
 
 def create_table(context):
     commands = [
@@ -38,6 +40,10 @@ def create_table(context):
         context.execute_command(command)
 
 def run(args):
+    if not os.path.isdir(args.base_dir):
+        oscar.log.error("'%s' does not exist or not a directory" % args.base_dir)
+        return 1
+
     with oscar.context(args.base_dir, True) as context:
         create_table(context)
 

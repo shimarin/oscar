@@ -1,7 +1,9 @@
 import os
+import hashlib
 import logging
 import logging.handlers
 
+# http://packages.groonga.org/source/groonga-gobject/
 os.environ['GI_TYPELIB_PATH'] = '/usr/local/lib/girepository-1.0'
 import gi.repository.Groonga
 
@@ -45,8 +47,30 @@ def context(base_dir, create = False):
             pass # exception if db doesnot exist
     return Context("%s/.oscar/groonga" % base_dir)
 
+class Command:
+    def __init__(self, context, name):
+        self.context = context
+        self.name = name
+    def __enter__(self):
+        self.command = gi.repository.Groonga.Command.new(self.context, self.name)
+        return self.command
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type:
+            del self.command
+            return False
+        #else
+        del self.command
+        return True
+
+def command(context, name):
+    return Command(context, name)
+
 def init():
     gi.repository.Groonga.init()
 
 def fin():
     gi.repository.Groonga.fin()
+
+def sha1(str):
+    return hashlib.sha1(str).hexdigest()
+

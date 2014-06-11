@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja" ng-app="Oscar">
+  <head>
+    <title>全文検索NAS {%block title%}{%endblock%}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    {%if True%}
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/latest/css/bootstrap.css">
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-resource.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.2.10/angular-locale_ja-jp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.js"></script>
+    {%else%}
+    <script src="{{ url_for('static', filename='js/jquery.min.js')}}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <script src="{{ url_for('static', filename='js/angular.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/angular-resource.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/angular-locale_ja-jp.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/ui-bootstrap-tpls.min.js')}}"></script>
+    {%endif%}
+    <script src="{{ url_for('static', filename='js/oscar.js')}}"></script>
+    <style type="text/css">
+      span.keyword { color:red; font-weight:bold; }
+    </style>
+    <script language="javascript">
+      {%block script%}{%endblock%}
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header" style="padding-top: 20px;border-bottom: 1px solid #e5e5e5;">
+	<ul class="nav nav-pills pull-right">
+	  <li><a ng-click="about()" href=""><span class="glyphicon glyphicon-info-sign"></span> About</a></li>
+	  <li{%if request.path.startswith("/_admin/")%} class="active"{%endif%}><a href="/_admin/"><span class="glyphicon glyphicon-cog"></span> 管理</a></li> 
+	  <li{%if request.path=="/"%} class="active"{%endif%}><a href="/"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+	</ul>
+	{%if g.username%}<div class="pull-right" style="padding: 10px 15px;"><span class="glyphicon glyphicon-user"></span> {{g.username}}</div>{%endif%}
+
+	<h3 class="text-muted" style="margin-top: 0;margin-bottom: 0;line-height: 40px;padding-bottom: 19px;">全文検索NAS</h3>
+      </div>
+
+      <div class="modal fade" id="about" tabindex="-1" role="dialog">
+	<div class="modal-dialog">
+	  <div class="modal-content">
+	    <div class="modal-header">
+	      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	      <h4 class="modal-title"><span class="glyphicon glyphicon-info-sign"></span> このシステムについて</h4>
+	    </div>
+	    <div class="modal-body">
+	      <p><img src="{{ url_for('static', filename='img/walbrix_logo.png')}}"/></p>
+	      <p>開発元: ワルブリックス株式会社</p>
+	    </div>
+	    <div class="modal-footer">
+	      <button type="button" class="btn btn-primary" data-dismiss="modal">閉じる</button>
+	    </div>
+	  </Div>
+	</div>
+      </div>
+
+      {%block contents%}{%endblock%}
+
+      <div class="footer" style="border-top: 1px solid #eee;margin-top: 40px;padding-top: 40px;padding-bottom: 40px;">
+        <p>&copy; <a href="http://www.walbrix.com/jp/">Walbrix Corporation</a> 2013-2014</p>
+      </div>
+    </div>
+  </body>
+  <script type="text/ng-template" id="about.html">
+    <div class="modal-header">
+      <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
+      <h4 class="modal-title"><span class="glyphicon glyphicon-info-sign"></span> このシステムについて</h4>
+    </div>
+    <div class="modal-body">
+      <p><img src="{{ url_for('static', filename='img/walbrix_logo.png')}}"/></p>
+      <p>開発元: ワルブリックス株式会社</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" ng-click="$close()">閉じる</button>
+    </div>
+  </script>
+</html>

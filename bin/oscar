@@ -1,0 +1,46 @@
+#!/usr/bin/python2.7
+# -*- coding:utf-8 mode:python -*-
+
+import os,sys
+import argparse
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../lib')
+
+import oscar
+
+import init
+import add
+
+__author__ = "Walbrix Corporation"
+__version__ = "0.0.1"
+
+
+# main
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--base-dir", default=".")
+parser.add_argument("-v", "--verbose", action="store_true")
+parser.add_argument("-l", "--log", default=None)
+
+subparsers = parser.add_subparsers()
+
+parser_init = subparsers.add_parser("init")
+parser_init.set_defaults(module=init)
+
+parser_add = subparsers.add_parser("add")
+parser_add.add_argument("args", nargs='*')
+parser_add.set_defaults(module=add)
+
+args = parser.parse_args()
+
+oscar.init()
+oscar.logger_init(args.module.name if hasattr(args.module, "name") else "oscar", args.verbose, args.log)
+
+if not os.path.isdir(args.base_dir):
+    oscar.log.error("'%s' does not exist or not a directory" % args.base_dir)
+    sys.exit(1)
+
+result = args.module.run(args)
+
+#oscar.fin()
+sys.exit(result if result else 0)

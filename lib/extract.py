@@ -2,11 +2,25 @@
 # -*- coding: utf-8 -*-
 
 '''
-USE="python" emerge nkf xlrd poppler
+USE="python tools" emerge nkf xlrd poppler wv xlhtml elinks
+caution: nkf-2.0.7 is buggy
 '''
 
+'''
+[ebuild  N     ] dev-libs/kpathsea-6.1.0_p20120701  USE="-doc -source -static-libs" 
+[ebuild  N     ] app-text/dvipsk-5.992_p20120701  USE="-doc -source" 
+[ebuild  N     ] app-text/ps2pkm-1.5_p20120701 
+[ebuild  N     ] sys-apps/ed-1.6 
+[ebuild  N     ] dev-tex/bibtexu-3.71_p20120701 
+[ebuild  N     ] dev-tex/luatex-0.70.1-r2  USE="-doc" 
+[ebuild  N     ] app-text/texlive-core-2012-r1  USE="-X -cjk -doc -source -tk -xetex" 
+[ebuild  N     ] dev-texlive/texlive-documentation-base-2012  USE="-source" 
+[ebuild  N     ] dev-texlive/texlive-basic-2012  USE="-doc -source" 
+[ebuild  N     ] dev-texlive/texlive-latex-2012  USE="-doc -source" 
+[ebuild  N     ] app-text/wv-1.2.9-r1  USE="tools -wmf" 
+'''
 
-import sys,os,re,subprocess,StringIO
+import sys,os,re,subprocess,StringIO,codecs
 import nkf,xlrd
 import oscar,officex
 
@@ -26,6 +40,12 @@ def process_output(cmdline, timeout=30):
         raise IndexingFailureException(stderrdata)
     return stdoutdata
 
+def utf8_cleanup(text):
+    if isinstance(text, str):
+        return nkf.nkf("-w", text)
+    #else
+    return text.encode("utf-8")
+
 def elinks(html):
     my_env = os.environ.copy()
     my_env["LANG"] = "ja_JP.utf8"
@@ -34,14 +54,14 @@ def elinks(html):
     rst = elinks.wait()
     if rst == 124: IndexingFailureException("Elinks Process Timeout (10sec)")
     elif rst != 0: raise IndexingFailureException(stderrdata)
-    return text
+    return utf8_cleanup(text)
 
 def unoconv(os_pathname):
     html = process_output(["/usr/bin/unoconv","-f","html","--stdout",os_pathname], 30)
     lynx = subprocess.Popen(["/usr/bin/lynx","-stdin","-dump","-width","1000"],shell=False,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     text, stderrdata = lynx.communicate(html)
     if lynx.wait() != 0: raise IndexingFailureException(stderrdata)
-    return text
+    return utf8_cleanup(text)
 
 def ppthtml(os_pathname):
     html = process_output(["/usr/bin/ppthtml",os_pathname])
@@ -49,7 +69,7 @@ def ppthtml(os_pathname):
     text = re.sub(ur'[ 　]+', ' ', text.decode("utf-8"))
     text = re.sub(ur'_+', '_', text)
     text = re.sub(ur'-+', '-', text)
-    return text.encode("utf-8")
+    return utf8_cleanup(text)
 
 def xl(os_pathname):
     def cell2str(cell):
@@ -65,25 +85,25 @@ def xl(os_pathname):
         for row in range(0, sheet.nrows):
             out.write('\t'.join(map(lambda col:cell2str(sheet.cell(row,col)), range(0, sheet.ncols))) + '\n')
     text = re.sub(ur'[ 　]+', ' ', out.getvalue())
-    return text.encode("utf-8")
+    return utf8_cleanup(text)
 
 def wvhtml(os_pathname):
     html = process_output(["/usr/bin/wvWare", "--nographics", os_pathname])
     text = elinks(html)
     text = re.sub(ur'[ 　]+', ' ', text.decode("utf-8"))
     text = re.sub(ur'-+', '-', text)
-    return text.encode("utf-8")
+    return utf8_cleanup(text)
 
 def pdftotext(os_pathname):
     text = process_output(["/usr/bin/pdftotext",os_pathname, "-"])
-    return nkf.nkf("-w", text)
+    return utf8_cleanup(text)
 
 def text(os_pathname):
     if os.stat(os_pathname).st_size > 1024 * 1024 * 10:
         return "***TOO LARGE TEXT FILE***" 
     # else
     text = open(os_pathname).read()
-    return nkf.nkf("-w", text)
+    return utf8_cleanup(text)
 
 def htmltotext(os_pathname):
     html = open(os_pathname).read()
@@ -93,7 +113,7 @@ def htmltotext(os_pathname):
 def officexml(os_pathname):
     text = officex.extract(os_pathname)
     if not text: raise IndexingFailureException("Empty document")
-    return text
+    return utf8_cleanup(text)
 
 extractor_funcs = {
     ".xls":xl,
@@ -118,12 +138,18 @@ def get_extractor(fullpath):
             break
     return extractor_func
 
-if __name__ == '__main__':
-    for file in sys.argv[1:]:
-        print "Extracting %s..." % file
-        extractor = get_extractor(file)
+def parser_setup(parser):
+    parser.add_argument("file", nargs='+')
+    parser.set_defaults(func=run,name="extract")
+
+
+def run(args):
+    for filename in args.file:
+        print "Extracting %s..." % filename
+        extractor = get_extractor(filename)
         if extractor:
-            print extractor(file)
+            sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
+            sys.stdout.write(extractor(filename))
         else:
-            print "%s skipped(no extractor)" % file
+            print "%s skipped(no extractor)" % filename
 

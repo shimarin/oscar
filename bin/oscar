@@ -12,6 +12,11 @@ import init
 import add
 import search
 import web
+import walk
+import consume
+import cleanup
+import truncate
+import extract
 
 __author__ = "Walbrix Corporation"
 __version__ = "0.0.1"
@@ -26,6 +31,11 @@ init.parser_setup(subparsers.add_parser("init"))
 add.parser_setup(subparsers.add_parser("add"))
 search.parser_setup(subparsers.add_parser("search"))
 web.parser_setup(subparsers.add_parser("web"))
+walk.parser_setup(subparsers.add_parser("walk"))
+consume.parser_setup(subparsers.add_parser("consume"))
+cleanup.parser_setup(subparsers.add_parser("cleanup"))
+truncate.parser_setup(subparsers.add_parser("truncate"))
+extract.parser_setup(subparsers.add_parser("extract"))
 
 args = parser.parse_args()
 

@@ -6,13 +6,9 @@
 <div style="margin-top:1em;" ng-controller="IndexController">
 <h3>利用可能な共有フォルダ</h3>
 <dl class="dl-horizontal">
-{%for share in shares%}
-  <dt><big>{%if not share.guest_ok %}<span class="glyphicon glyphicon-lock"></span> {%endif%}<a href="{{share.name}}/">{{share.name}} <span class="glyphicon glyphicon-folder-close"></span></a></big></dt>
-  <dd>{{share.comment}} (検索可能ファイル数{{counts[share.name]}}件) {%if g.eden%} <a class="btn btn-success btn-xs" href="file://///{{request.environ["SERVER_NAME"]}}/{{share.name}}">エクスプローラで開く</a> <a data-toggle="modal" href="#iehelp"><span class="glyphicon glyphicon-question-sign"></span></a>{%endif%}</dd>
-{%endfor%}
+  <dt ng-repeat-start="share in info.shares"><big><span ng-show="!share.guest_ok" class="glyphicon glyphicon-lock"></span> <a href="{{share.name}}/">{{share.name}} <span class="glyphicon glyphicon-folder-close"></span></a></big></dt>
+  <dd ng-repeat-end>{{share.comment}} <span ng-show="share.info">(検索可能ファイル数{{share.info.count}}件) </span><span ng-show="eden"><a class="btn btn-success btn-xs" href="{{eden_link(share.name)}}">エクスプローラで開く</a> <a ng-click="iehelp()" href=""><span class="glyphicon glyphicon-question-sign"></span></a></span></dd>
 </dl>
-
-{%if g.eden%}{%include "iehelp.html"%}{%endif%}
 
 <h3>システム情報</h3>
 <h4>CPU負荷</h4>
@@ -23,7 +19,7 @@
   <tbody>
     <tr>
       <td ng-repeat="item in info.loadavg">
-        <div class="alert {%if item > 3.0 %}alert-danger{%elif item > 1.0 %}alert-warning{%else%}alert-success{%endif%}">{{item * 100}}%</div>
+        <div ng-class="alert_class(item)">{{Math.floor(item * 100)}}%</div>
       </td>
     </tr>
   </tbody>

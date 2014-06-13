@@ -51,7 +51,7 @@
       </a>
       <div class="media-body">
         <h4 class="media-heading">
-          <a href="{{row.path}}{{row.name}}">
+          <a ng-click="open_file(row.path,row.name)" href="">
             <span ng-show="row.snippets.name.length > 0" ng-repeat="snippet in row.snippets.name"><span ng-bind-html="snippet"></span></span>
             <span ng-show="!row.snippets.name || row.snippets.name.length == 0">{{row.name}}</span>
           </a>
@@ -79,12 +79,12 @@
           <span class="glyphicon glyphicon-folder-close"></span> <a href="" ng-click="move_to(join_path(path,item.name))">{{item.name}}</a>
         </td>
         <td ng-show="!item.is_dir">
-          <span class="glyphicon glyphicon-file"></span> <a ng-show="eden" class="btn btn-success btn-xs" href="{{eden_link(info.share_name,path,item.name)}}">直接開く</a> <a href="" ng-click="open_file(item.name)">{{item.name}}</a>
+          <span class="glyphicon glyphicon-file"></span> <a ng-show="eden" class="btn btn-success btn-xs" href="{{eden_link(info.share_name,path,item.name)}}">直接開く</a> <a href="" ng-click="open_file(path,item.name)">{{item.name}}</a>
         </td>
       </tr>
     </tbody>
   </table>
-  <p ng-show="dir.length == 0">このフォルダは空です。</p>
+  <p ng-show="dir.length === 0">このフォルダは空です。</p>
 </div>
 {%endraw%}
 {%endblock%}

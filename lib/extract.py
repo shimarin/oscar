@@ -65,11 +65,11 @@ def unoconv(os_pathname):
 
 def ppthtml(os_pathname):
     html = process_output(["/usr/bin/ppthtml",os_pathname])
-    text = elinks(html)
+    title, text = elinks(html)
     text = re.sub(ur'[ 　]+', ' ', text.decode("utf-8"))
     text = re.sub(ur'_+', '_', text)
     text = re.sub(ur'-+', '-', text)
-    return ("", utf8_cleanup(text))
+    return (title, utf8_cleanup(text))
 
 def xl(os_pathname):
     def cell2str(cell):
@@ -89,10 +89,10 @@ def xl(os_pathname):
 
 def wvhtml(os_pathname):
     html = process_output(["/usr/bin/wvWare", "--nographics", os_pathname])
-    text = elinks(html)
+    title, text = elinks(html)
     text = re.sub(ur'[ 　]+', ' ', text.decode("utf-8"))
     text = re.sub(ur'-+', '-', text)
-    return ("", utf8_cleanup(text))
+    return (title, utf8_cleanup(text))
 
 def pdftotext(os_pathname):
     text = process_output(["/usr/bin/pdftotext",os_pathname, "-"])

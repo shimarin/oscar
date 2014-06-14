@@ -3,6 +3,7 @@
 import os,re,hashlib,json
 import logging,logging.handlers
 
+# USE="-cairo" emerge pygobject
 # http://packages.groonga.org/source/groonga-gobject/
 os.environ['GI_TYPELIB_PATH'] = '/usr/local/lib/girepository-1.0'
 import gi.repository.Groonga

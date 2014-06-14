@@ -42,6 +42,38 @@ def check_if_uptodate(context, filename,mtime):
     if len(rows) == 0: return False
     return (rows[0][1] >= mtime * 1000)
 
+def check_if_ignoreable(base_dir, filename):
+    ignore_prefixes = [".", "#", "~$"]
+    ignore_suffixes = [".tmp", ".bak", "~"]
+    basename = os.path.basename(filename).lower()
+    if any(map(lambda x:basename.startswith(x), ignore_prefixes)) or any(map(lambda x:basename.endswith(x), ignore_suffixes)):
+        return True
+    #else
+    return False
+
+def enqueue(context, base_dir, filename, qw = None):
+    exact_filename = os.path.join(base_dir, filename)
+    stat = os.stat(exact_filename)
+
+    if check_if_ignoreable(base_dir, filename):
+        oscar.log.debug("%s ignored" % filename)
+        return False
+
+    if not check_if_uptodate(context, filename, stat.st_mtime):
+        queue_should_be_flushed = False
+        if qw == None: 
+            qw = QueueWriter(context, base_dir)
+            queue_should_be_flushed = True
+        if qw.enqueue(filename,stat.st_size):
+            oscar.log.debug("%s enqueued" % filename)
+            return True
+        else:
+            oscar.log.debug("%s is not enqueued" % filename)
+        if queue_should_be_flushed: qw.flush()
+    else:
+        oscar.log.debug("%s skipped because file already exists on database" % filename)
+    return False
+
 def walk(context, base_dir):
     qw = QueueWriter(context, base_dir)
     for root, dirs, files in os.walk(base_dir):
@@ -49,19 +81,15 @@ def walk(context, base_dir):
         if r.startswith('.'): continue
         for file in files:
             filename = os.path.join(r, file)
-            exact_filename = os.path.join(base_dir, filename)
-            stat = os.stat(exact_filename)
-            if (not check_if_uptodate(context, filename, stat.st_mtime)):
-                if qw.enqueue(filename,stat.st_size):
-                    oscar.log.debug("%s enqueued" % filename)
-                else:
-                    oscar.log.debug("%s is not enqueued" % filename)
-                
-            else:
-                oscar.log.debug("%s skipped because file already exists on database" % filename)
+            enqueue(context, base_dir, filename, qw)
     qw.flush()
 
 def run(args):
     for base_dir in args.base_dir:
         with oscar.context(base_dir) as context:
             walk(context, base_dir)
+
+'''
+14704件のwalkに9秒、再walkには3秒
+
+'''

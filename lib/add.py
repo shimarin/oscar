@@ -34,35 +34,41 @@ def add_file(context, base_dir, filename, utf8_check=False):
         oscar.log.error("File %s does not exist" % exact_filename)
         return False
 
-    file_hash = calc_file_hash(exact_filename)
-    oscar.log.debug("File hash: %s" % file_hash)
+    stat = os.stat(exact_filename)
 
-    with oscar.command(context, "select") as command:
-        command.add_argument("table", "Fulltext")
-        command.add_argument("output_columns", "_id")
-        command.add_argument("filter","_key == '%s'" % file_hash)
-        num_hits = json.loads(command.execute())[0][0][0]
+    if stat.st_size < 50000000: # 50MB以上は大きすぎる
+        file_hash = calc_file_hash(exact_filename)
+        oscar.log.debug("File hash: %s" % file_hash)
 
-    if num_hits == 0:  # まだ登録されてない場合
-        extractor = extract.get_extractor(exact_filename)
-        if extractor:
-            try:
-                title, text = extractor(exact_filename)
-            except Exception, e:
-                oscar.log.exception("extractor")
-            else:
-                if utf8_check: utf8_check_by_iconv(text)
-                if len(text) > 3000000: # 3MB以上のテキストは切り捨てる(snippetつきで検索しようとしたときにgroongaが落ちるため)
-                    text = text.decode("utf-8")[0:1000000].encode("utf-8")
-                row = {"_key":file_hash, "title":title, "content": text }
-                with oscar.command(context, "load") as command:
-                    command.add_argument("table", "Fulltext")
-                    command.add_argument("values", oscar.to_json([row]))
-                    command.execute()
+        with oscar.command(context, "select") as command:
+            command.add_argument("table", "Fulltext")
+            command.add_argument("output_columns", "_id")
+            command.add_argument("filter","_key == '%s'" % file_hash)
+            num_hits = json.loads(command.execute())[0][0][0]
+
+        if num_hits == 0:  # まだ登録されてない場合
+            extractor = extract.get_extractor(exact_filename)
+            if extractor:
+                try:
+                    title, text = extractor(exact_filename)
+                except Exception, e:
+                    oscar.log.exception("extractor")
+                else:
+                    if utf8_check: utf8_check_by_iconv(text)
+                    if len(text) > 3000000: # 3MB以上のテキストは切り捨てる(snippetつきで検索しようとしたときにgroongaが落ちるため)
+                        text = text.decode("utf-8")[0:1000000].encode("utf-8")
+                    row = {"_key":file_hash, "title":title, "content": text }
+                    with oscar.command(context, "load") as command:
+                        command.add_argument("table", "Fulltext")
+                        command.add_argument("values", oscar.to_json([row]))
+                        command.execute()
+    else:
+        oscar.log.debug("%s is too large (%d). the content is ignored" % (filename, stat.st_size))
+        file_hash = ""
+        #  select Files --filter 'name @^ \"walbrix\"'
 
     path = os.path.dirname(filename)
     if not path.endswith('/'): path += '/'
-    stat = os.stat(exact_filename)
     row = {"_key":oscar.sha1(filename), "path":path, "path_ft":path, "name":os.path.basename(filename), "mtime":stat.st_mtime * 1000, "size":stat.st_size, "fulltext":file_hash }
     oscar.log.info("Adding: %s" % exact_filename)
 

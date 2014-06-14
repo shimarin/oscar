@@ -20,7 +20,7 @@ def consume(context, base_dir, id_prefix, utf8_check, limit=1):
 
     cnt = 0
     for row in rows:
-        _id, _key, filename = row[0], row[1], row[2]
+        _id, _key, filename = row[0], row[1].encode("utf-8"), row[2].encode("utf-8")
         oscar.log.debug("%s: %s" % (_key, filename))
         add.add_file(context, base_dir, filename, utf8_check)
         with oscar.command(context, "delete") as command:

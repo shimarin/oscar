@@ -17,7 +17,7 @@ def cleanup(context, base_dir):
         total = result[0][0][0]
         rows=result[0][2:]
         for row in rows:
-            _id,path,name = row[0],row[1],row[2]
+            _id,path,name = row[0],row[1].encode("utf-8"),row[2].encode("utf-8")
             exact_filename = os.path.join(base_dir,path if path != "/" else "",name)
             if not os.path.isfile(exact_filename):
                 oscar.log.info("Missing file: %s. remove from database" % exact_filename)

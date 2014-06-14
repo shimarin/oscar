@@ -90,6 +90,5 @@ def run(args):
             walk(context, base_dir)
 
 '''
-14704件のwalkに9秒、再walkには3秒
-
+14704件のwalkに9秒、再walkには3秒 consumeに11分
 '''

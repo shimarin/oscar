@@ -7,7 +7,7 @@
 <h3>利用可能な共有フォルダ</h3>
 <dl class="dl-horizontal">
   <dt ng-repeat-start="share in info.shares"><big><span ng-show="!share.guest_ok" class="glyphicon glyphicon-lock"></span> <a href="{{share.name}}/">{{share.name}} <span class="glyphicon glyphicon-folder-close"></span></a></big></dt>
-  <dd ng-repeat-end>{{share.comment}} <span ng-show="share.info">(検索可能ファイル数{{share.info.count}}件) </span><span ng-show="eden"><a class="btn btn-success btn-xs" href="{{eden_link(share.name)}}">エクスプローラで開く</a> <a ng-click="iehelp()" href=""><span class="glyphicon glyphicon-question-sign"></span></a></span></dd>
+  <dd ng-repeat-end>{{share.comment}} <span ng-show="share.info">(検索可能ファイル数{{share.info.count}}件) </span><span ng-show="info.eden"><a class="btn btn-success btn-xs" href="{{eden_link(share.name)}}">エクスプローラで開く</a> <a ng-click="iehelp()" href=""><span class="glyphicon glyphicon-question-sign"></span></a></span></dd>
 </dl>
 
 <h3>システム情報</h3>

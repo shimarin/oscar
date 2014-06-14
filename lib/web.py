@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os,json,time
+import os,json,time,re
 
 import flask
 
@@ -9,9 +9,16 @@ import search
 app = flask.Flask(__name__)
 app.config.update(JSON_AS_ASCII=False)
 
+private_address_regex = re.compile(r"(^127\.0\.0\.1)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)")
+
 def parser_setup(parser):
     parser.add_argument("base_dir", nargs="+")
     parser.set_defaults(func=run,name="web")
+
+def is_eden(request):
+    local_access = private_address_regex.match(flask.request.remote_addr)
+    # eden == MSIE in private network
+    return "MSIE " in request.headers.get('User-Agent') and local_access
 
 @app.route("/")
 def index():
@@ -43,7 +50,7 @@ def info():
     }
     capacity["free"] = ( capacity_string(free_bytes), 100 - capacity["used"][1] )
 
-    return flask.jsonify({"foo":"bar","loadavg":os.getloadavg(),"capacity":capacity,"shares":shares})
+    return flask.jsonify({"foo":"bar","loadavg":os.getloadavg(),"capacity":capacity,"shares":shares,"eden":is_eden(flask.request)})
 
 @app.route("/<share_name>/")
 def share(share_name):
@@ -65,7 +72,7 @@ def share_info(share_name):
             command.add_argument("limit", "0")
             count = json.loads(command.execute())[0][0][0]
     
-    return flask.jsonify({"share_name":share_name,"count":count})
+    return flask.jsonify({"share_name":share_name,"count":count,"eden":is_eden(flask.request)})
 
 @app.route("/<share_name>/_dir")
 def share_dir(share_name):

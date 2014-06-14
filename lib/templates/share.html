@@ -9,7 +9,7 @@
       <li><a href="/"><span class="glyphicon glyphicon-home"></span></a></li>
       <li>
         <a href="" ng-click="move_to('')"><span class="glyphicon" ng-class="{true:'glyphicon-folder-open',false:'glyphicon-folder-close'}[path_elements.length == 0]"></span> {{info.share_name}}</a>
-        <span ng-show="eden && path_elements.length == 0"><a class="btn btn-success btn-xs" href="{{eden_link(info.share_name,path)}}">エクスプローラで開く</a> <a ng-click="iehelp()" href=""><span class="glyphicon glyphicon-question-sign"></span></a></span>
+        <span ng-show="info.eden && path_elements.length == 0"><a class="btn btn-success btn-xs" href="{{eden_link(info.share_name,path)}}">エクスプローラで開く</a> <a ng-click="iehelp()" href=""><span class="glyphicon glyphicon-question-sign"></span></a></span>
       </li>
       <li ng-repeat="elem in path_elements">
         <span ng-show="!$last">
@@ -18,7 +18,7 @@
         <span ng-show="$last"> 
           <span class="glyphicon glyphicon-folder-open"></span>
           {{elem}}
-         <span ng-show="eden">
+         <span ng-show="info.eden">
             <a class="btn btn-success btn-xs" href="{{eden_link(info.share_name,path)}}">エクスプローラで開く</a>
             <a ng-click="iehelp()" href=""><span class="glyphicon glyphicon-question-sign"></span></a>
           </span>
@@ -79,7 +79,7 @@
           <span class="glyphicon glyphicon-folder-close"></span> <a href="" ng-click="move_to(join_path(path,item.name))">{{item.name}}</a>
         </td>
         <td ng-show="!item.is_dir">
-          <span class="glyphicon glyphicon-file"></span> <a ng-show="eden" class="btn btn-success btn-xs" href="{{eden_link(info.share_name,path,item.name)}}">直接開く</a> <a href="" ng-click="open_file(path,item.name)">{{item.name}}</a>
+          <span class="glyphicon glyphicon-file"></span> <a ng-show="info.eden" class="btn btn-success btn-xs" href="{{eden_link(info.share_name,path,item.name)}}">直接開く</a> <a href="" ng-click="open_file(path,item.name)">{{item.name}}</a>
         </td>
       </tr>
     </tbody>

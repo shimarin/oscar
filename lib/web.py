@@ -29,7 +29,8 @@ def info():
     shares = []
     for share_name in oscar.share_names():
         share = oscar.get_share(share_name)
-        shares.append({"name":share.name,"comment":share.comment,"guest_ok":share.guest_ok})
+        share_info = {"name":share.name,"comment":share.comment,"guest_ok":share.guest_ok}
+        shares.append(share_info)
 
     st = os.statvfs("/")
 
@@ -50,7 +51,7 @@ def info():
     }
     capacity["free"] = ( capacity_string(free_bytes), 100 - capacity["used"][1] )
 
-    return flask.jsonify({"foo":"bar","loadavg":os.getloadavg(),"capacity":capacity,"shares":shares,"eden":is_eden(flask.request)})
+    return flask.jsonify({"loadavg":os.getloadavg(),"capacity":capacity,"shares":shares,"eden":is_eden(flask.request)})
 
 @app.route("/<share_name>/")
 def share(share_name):
@@ -71,8 +72,12 @@ def share_info(share_name):
             if path != "": command.add_argument("filter", "path @^ \"%s\"" % oscar.escape_for_groonga(path))
             command.add_argument("limit", "0")
             count = json.loads(command.execute())[0][0][0]
+        with oscar.command(context, "select") as command:
+            command.add_argument("table", "FileQueue")
+            command.add_argument("limit", "0")
+            queued = json.loads(command.execute())[0][0][0]
     
-    return flask.jsonify({"share_name":share_name,"count":count,"eden":is_eden(flask.request)})
+    return flask.jsonify({"share_name":share_name,"count":count,"queued":queued,"eden":is_eden(flask.request)})
 
 @app.route("/<share_name>/_dir")
 def share_dir(share_name):

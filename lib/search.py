@@ -16,8 +16,8 @@ def search(context, path, keyword, offset=None, limit=None):
 
     with oscar.command(context, "select") as command:
         command.add_argument("table", "Files")
-        command.add_argument("output_columns", "_key,path,name,mtime,snippet_html(path),snippet_html(name),snippet_html(fulltext.content)")
-        command.add_argument("match_columns", "name*10||fulltext.content*5||path_ft")
+        command.add_argument("output_columns", "_key,path,name,mtime,size,fulltext.title,snippet_html(path),snippet_html(name),snippet_html(fulltext.content)")
+        command.add_argument("match_columns", "name*10||fulltext.title*10||fulltext.content*5||path_ft")
         if path != "": command.add_argument("filter", "path @^ \"%s\"" % oscar.escape_for_groonga(path))
         command.add_argument("query", keyword)
         command.add_argument("sortby", "-_score")
@@ -28,7 +28,7 @@ def search(context, path, keyword, offset=None, limit=None):
 
     return {
         "count":result[0][0][0],
-        "rows":map(lambda row:{"key":row[0],"path":row[1],"name":row[2],"mtime":row[3],"snippets":{"path":row[4],"name":row[5],"content":row[6]}}, result[0][2:])
+        "rows":map(lambda row:{"key":row[0],"path":row[1],"name":row[2],"mtime":row[3],"size":row[4],"title":row[5],"snippets":{"path":row[6],"name":row[7],"content":row[8]}}, result[0][2:])
     }
     
 

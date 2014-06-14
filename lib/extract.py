@@ -54,14 +54,14 @@ def elinks(html):
     rst = elinks.wait()
     if rst == 124: IndexingFailureException("Elinks Process Timeout (10sec)")
     elif rst != 0: raise IndexingFailureException(stderrdata)
-    return utf8_cleanup(text)
+    return ("", utf8_cleanup(text))
 
 def unoconv(os_pathname):
     html = process_output(["/usr/bin/unoconv","-f","html","--stdout",os_pathname], 30)
     lynx = subprocess.Popen(["/usr/bin/lynx","-stdin","-dump","-width","1000"],shell=False,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     text, stderrdata = lynx.communicate(html)
     if lynx.wait() != 0: raise IndexingFailureException(stderrdata)
-    return utf8_cleanup(text)
+    return ("", utf8_cleanup(text))
 
 def ppthtml(os_pathname):
     html = process_output(["/usr/bin/ppthtml",os_pathname])
@@ -69,7 +69,7 @@ def ppthtml(os_pathname):
     text = re.sub(ur'[ 　]+', ' ', text.decode("utf-8"))
     text = re.sub(ur'_+', '_', text)
     text = re.sub(ur'-+', '-', text)
-    return utf8_cleanup(text)
+    return ("", utf8_cleanup(text))
 
 def xl(os_pathname):
     def cell2str(cell):
@@ -85,25 +85,25 @@ def xl(os_pathname):
         for row in range(0, sheet.nrows):
             out.write('\t'.join(map(lambda col:cell2str(sheet.cell(row,col)), range(0, sheet.ncols))) + '\n')
     text = re.sub(ur'[ 　]+', ' ', out.getvalue())
-    return utf8_cleanup(text)
+    return ("", utf8_cleanup(text))
 
 def wvhtml(os_pathname):
     html = process_output(["/usr/bin/wvWare", "--nographics", os_pathname])
     text = elinks(html)
     text = re.sub(ur'[ 　]+', ' ', text.decode("utf-8"))
     text = re.sub(ur'-+', '-', text)
-    return utf8_cleanup(text)
+    return ("", utf8_cleanup(text))
 
 def pdftotext(os_pathname):
     text = process_output(["/usr/bin/pdftotext",os_pathname, "-"])
-    return utf8_cleanup(text)
+    return ("", utf8_cleanup(text))
 
 def text(os_pathname):
     if os.stat(os_pathname).st_size > 1024 * 1024 * 10:
         return "***TOO LARGE TEXT FILE***" 
     # else
     text = open(os_pathname).read()
-    return utf8_cleanup(text)
+    return ("", utf8_cleanup(text))
 
 def htmltotext(os_pathname):
     html = open(os_pathname).read()
@@ -113,7 +113,7 @@ def htmltotext(os_pathname):
 def officexml(os_pathname):
     text = officex.extract(os_pathname)
     if not text: raise IndexingFailureException("Empty document")
-    return utf8_cleanup(text)
+    return ("", utf8_cleanup(text))
 
 extractor_funcs = {
     ".xls":xl,
@@ -149,7 +149,9 @@ def run(args):
         extractor = get_extractor(filename)
         if extractor:
             sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
-            sys.stdout.write(extractor(filename))
+            title, content = extractor(filename)
+            sys.stdout.write(title)
+            sys.stdout.write(content)
         else:
             print "%s skipped(no extractor)" % filename
 

@@ -15,6 +15,7 @@ def create_table(context):
     commands = [
         # Fulltext(_key:md5 of original content,content:extract content)
         "table_create --name Fulltext --flags TABLE_PAT_KEY --key_type ShortText",
+        "column_create --table Fulltext --name title --flags COLUMN_SCALAR --type ShortText",
         "column_create --table Fulltext --name content --flags COLUMN_SCALAR --type LongText",
 
         # Files(_key:sha1 of path,path,name,fulltext=>Fulltext)
@@ -31,6 +32,7 @@ def create_table(context):
 
         # Terms(fulltext_content:index of Fulltext.content)
         "table_create --name Terms --flags TABLE_PAT_KEY --key_type ShortText %s --normalizer NormalizerAuto" % tokenizer,
+        "column_create --table Terms --name fulltext_title --flags COLUMN_INDEX|WITH_POSITION --type Fulltext --source title",
         "column_create --table Terms --name fulltext_content --flags COLUMN_INDEX|WITH_POSITION --type Fulltext --source content",
         "column_create --table Terms --name files_path --flags COLUMN_INDEX|WITH_POSITION --type Files --source path_ft",
         "column_create --table Terms --name files_name --flags COLUMN_INDEX|WITH_POSITION --type Files --source name",

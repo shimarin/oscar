@@ -47,14 +47,14 @@ def add_file(context, base_dir, filename, utf8_check=False):
         extractor = extract.get_extractor(exact_filename)
         if extractor:
             try:
-                text = extractor(exact_filename)
+                title, text = extractor(exact_filename)
             except Exception, e:
                 oscar.log.exception("extractor")
             else:
                 if utf8_check: utf8_check_by_iconv(text)
                 if len(text) > 3000000: # 3MB以上のテキストは切り捨てる(snippetつきで検索しようとしたときにgroongaが落ちるため)
                     text = text.decode("utf-8")[0:1000000].encode("utf-8")
-                row = {"_key":file_hash, "content": text }
+                row = {"_key":file_hash, "title":title, "content": text }
                 with oscar.command(context, "load") as command:
                     command.add_argument("table", "Fulltext")
                     command.add_argument("values", oscar.to_json([row]))

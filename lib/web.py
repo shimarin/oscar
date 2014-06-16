@@ -132,7 +132,7 @@ def file(share_name, path,filename):
 def run(args):
     for base_dir in args.base_dir:
         with oscar.context(base_dir) as context: pass # just check if exists
-        oscar.register_share(oscar.Share(os.path.basename(base_dir),base_dir))
+        oscar.register_share(oscar.Share(os.path.basename(oscar.remove_trailing_slash(base_dir)),base_dir))
 
     oscar.log.debug("Starting web...")
     app.run(host='0.0.0.0',debug=True)

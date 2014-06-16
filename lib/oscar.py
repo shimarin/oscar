@@ -84,10 +84,13 @@ def sha1(val):
 def remove_preceding_slash(filename):
     return re.sub(r'^\/+', "", filename)
 
+def remove_trailing_slash(dirname):
+    return re.sub(r'\/+$', "", dirname)
+
 class Share:
     def __init__(self, name, path, guest_ok=False, writable=False, comment=None,locking=True,valid_users=None):
         self.name = name if isinstance(name, unicode) else name.decode("utf-8")
-        self.path = path
+        self.path = remove_trailing_slash(path)
         self.guest_ok = guest_ok
         self.writable = writable
         self.comment = comment if isinstance(comment, unicode) else comment.decode("utf-8") if comment else None

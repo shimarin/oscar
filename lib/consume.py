@@ -33,6 +33,6 @@ def consume(context, base_dir, id_prefix, utf8_check, limit=1):
 
 def run(args):
     for base_dir in args.base_dir:
-        with oscar.context(base_dir) as context:
-            while consume(context, base_dir, args.id_prefix, args.utf8_check) > 0:
-                pass
+        while True:
+            with oscar.context(base_dir) as context:
+                if consume(context, base_dir, args.id_prefix, args.utf8_check,100) == 0: break

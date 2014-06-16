@@ -44,5 +44,5 @@ oscar.logger_init(args.name, args.verbose, args.log)
 
 result = args.func(args)
 
-#oscar.fin()
+oscar.fin()
 sys.exit(result if result else 0)

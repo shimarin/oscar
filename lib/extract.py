@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-USE="python tools" emerge nkf xlrd poppler wv xlhtml elinks
+USE="python tools" emerge nkf xlrd poppler wv xlhtml elinks lxml
 caution: nkf-2.0.7 is buggy
 '''
 

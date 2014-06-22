@@ -22,11 +22,11 @@ caution: nkf-2.0.7 is buggy
 
 import sys,os,re,subprocess,StringIO,codecs
 import nkf,xlrd
-import oscar,officex
+import officex
 
 class IndexingFailureException(Exception):
-    def __init__(self, str):
-        self.str = str
+    def __init__(self, msg):
+        self.str = msg
     def __str__(self):
         return u"Indexing failure '%s'" % (self.str)
 

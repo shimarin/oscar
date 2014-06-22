@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os,re,subprocess,hashlib,json
+import os,hashlib,json
 
 import oscar
 import extract
@@ -51,7 +51,7 @@ def add_file(context, base_dir, filename, utf8_check=False):
             if extractor:
                 try:
                     title, text = extractor(exact_filename)
-                except Exception, e:
+                except Exception:
                     oscar.log.exception("extractor")
                 else:
                     if utf8_check: utf8_check_by_iconv(text)

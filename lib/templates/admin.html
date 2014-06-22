@@ -1,0 +1,97 @@
+{%extends "page.html"%}
+{%block title%}管理{%endblock%}
+
+{%block contents%}
+{% raw %}
+<div style="margin-top:1em;" ng-controller="AdminController">
+  <h2>管理画面</h2>
+  <p>{{info}}</p>
+
+  <h3>共有フォルダ</h3>
+  <div class="row" style="margin-bottom:3em;">
+    <div class="col-sm-3">
+      <tabset vertical="true" type="pills">
+        <tab heading="新しく作成" select="new_share_selected()"></tab>
+        <tab ng-repeat="share_name in info.shares" heading="{{share_name}}" select="share_selected(share_name)"></tab>
+      </tabset>
+    </div>
+    <div class="col-sm-9">
+      <h4>共有フォルダの設定</h4>
+      <form name="shareForm" class="form-horizontal">
+		<div class="form-group">
+	      <label class="col-sm-2 control-label">共有名</label>
+	      <div class="col-sm-10">
+	      	<input ng-show="share.new" type="text" class="form-control" ng-model="share.name" ng-required="true">
+	      	<p ng-show="!share.new" class="form-control-static">{{share.name}}</p>
+	      </div>
+	    </div>
+		<div class="form-group">
+	      <label class="col-sm-2 control-label">自動同期元</label>
+	      <div class="col-sm-10">
+	      	<input type="text" class="form-control" ng-model="sync_origin">
+            <p class="help-block"><strong>//</strong>ホスト名又はIPアドレス<strong>/</strong>共有フォルダのパス</p>
+	      </div>
+	    </div>
+		<div class="form-group">
+	      <label class="col-sm-2 control-label">自動同期スケジュール</label>
+	      <div class="col-sm-10">
+	      	<p class="form-control-static">日 月 火 水 木 金 土   00:00</p>
+	      </div>
+	    </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button ng-show="share.new" class="btn btn-primary" ng-disabled="!shareForm.$valid" ng-click="create_share()">新規作成</button>
+            <button ng-show="!share.new" class="btn btn-primary" ng-disabled="!shareForm.$valid" ng-click="update_share()">設定を更新</button>
+            <button ng-show="!share.new" class="btn btn-default" ng-disabled="shareForm.$pristine" ng-click="reset_share()">リセット</button>
+          </div>
+          <div class="col-sm-9"><span class="text-danger" ng-show="errorMessage">{{errorMessage}}</span></div>
+        </div>
+      </form>
+      <div ng-show="!share.new">
+        <h4>共有フォルダに対する操作</h4>
+        <button class="btn btn-warning">検索インデックスのリセット</button>
+        <button class="btn btn-danger">共有フォルダの削除</button>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <h3>ユーザー</h3>
+  <div class="row">
+    <div class="col-sm-3">
+      <tabset vertical="true" type="pills">
+        <tab heading="新しく作成" select="new_user_selected()"></tab>
+        <tab ng-repeat="user_name in info.users" heading="{{user_name}}" select="user_selected(user_name)"></tab>
+      </tabset>
+    </div>
+    <div class="col-sm-9">
+      <h4>ユーザーの設定</h4>
+      <form name="userForm" class="form-horizontal">
+		<div class="form-group">
+	      <label class="col-sm-2 control-label">ユーザー名</label>
+	      <div class="col-sm-10">
+	      	<input ng-show="user.new" type="text" class="form-control" ng-model="user.name" ng-required="true">
+	      	<p ng-show="!user.new" class="form-control-static">{{user.name}}</p>
+	      </div>
+	    </div>
+		<div class="form-group">
+	      <label class="col-sm-2 control-label">種別</label>
+	      <div class="col-sm-10">
+            <label class="radio-inline"><input type="radio" ng-model="user.admin" ng-value="false">一般ユーザー</label>
+            <label class="radio-inline"><input type="radio" ng-model="user.admin" ng-value="true">管理者</label>
+	      </div>
+	    </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button ng-show="user.new" class="btn btn-primary" ng-disabled="!userForm.$valid" ng-click="create_user()">新規作成</button>
+            <button ng-show="!user.new" class="btn btn-primary" ng-disabled="!userForm.$valid" ng-click="update_user()">新規作成</button>
+            <button ng-show="!user.new" class="btn btn-default" ng-disabled="userForm.$pristine" ng-click="reset_user()">リセット</button>
+          </div>
+          <div class="col-sm-9"><span class="text-danger" ng-show="errorMessage">{{errorMessage}}</span></div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{%endraw%}
+{%endblock%}

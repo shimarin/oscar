@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import os,re,hashlib,json
-import logging,logging.handlers
+import logging.handlers
 
 # USE="-cairo" emerge pygobject
 # http://packages.groonga.org/source/groonga-gobject/
 os.environ['GI_TYPELIB_PATH'] = '/usr/local/lib/girepository-1.0'
-import gi.repository.Groonga
+import gi.repository.Groonga    #@UnresolvedImport
 
 log = None
+_share_registry = None
 
 def logger_init(name, verbose=False, filename=None):
     """Initialize logger instance."""
@@ -20,6 +21,10 @@ def logger_init(name, verbose=False, filename=None):
     log.addHandler(handler)
     log.setLevel(10 if verbose else 20)
 
+def set_logger(logger):
+    global log
+    log = logger
+
 class Context:
     def __init__(self, database):
         self.database = database
@@ -27,7 +32,7 @@ class Context:
     def __enter__(self):
         self.context = gi.repository.Groonga.Context.new()
         if os.path.exists(self.database):
-            log.debug("open_database(%s)" % self.database)
+            #log.debug("open_database(%s)" % self.database)
             self.context.open_database(self.database)
         else:
             os.makedirs(os.path.dirname(self.database))
@@ -35,7 +40,7 @@ class Context:
         return self.context
 
     def __exit__(self, exc_type, exc_value, traceback):
-        log.debug("close_database(%s)" % self.database)
+        #log.debug("close_database(%s)" % self.database)
         if exc_type:
             del self.context
             return False
@@ -74,6 +79,10 @@ def escape_for_groonga(val):
 def init():
     gi.repository.Groonga.init()
 
+def set_share_registry(share_registry):
+    global _share_registry
+    _share_registry = share_registry
+
 def fin():
     gi.repository.Groonga.fin()
 
@@ -102,8 +111,8 @@ class Share:
         if path.startswith('/'): path = re.sub(r'^/+', "", path)
         return os.path.join(self.path, path)
 
-    def urlencoded_name(self):
-        return urllib2.quote(self.name.encode("utf-8"))
+#    def urlencoded_name(self):
+#        return urllib2.quote(self.name.encode("utf-8"))
 
     def is_user_valid(self, user, groups):
         if self.valid_users == None: return True
@@ -114,24 +123,32 @@ class Share:
                 if group_prefix + group.lower() in valid_users: return True
         return False
 
-shares = []
+class ShareRegistry:
+    def __init__(self):
+        self.shares = []
+    def share_exists(self, name):
+        for share in self.shares: 
+            if share.name == name: return True
+        return False
+    def get_share(self, name):
+        for share in self.shares: 
+            if share.name == name: return share
+        return None
+    def share_names(self):
+        return map(lambda x:x.name, self.shares)
+    def register_share(self, share):
+        if self.share_exists(share.name):
+            raise Exception("Share %s already exists" % share.name)
+        self.shares.append(share)
 
 def share_exists(name):
-    for share in shares: 
-        if share.name == name: return True
-    return False
+    return _share_registry.share_exists(name)
 
 def get_share(name):
-    for share in shares: 
-        if share.name == name: return share
-    return None
+    return _share_registry.get_share(name)
 
 def share_names():
-    return map(lambda x:x.name, shares)
-
-def register_share(share):
-    if share_exists(share.name): raise Exception("Share %s already exists" % share.name)
-    shares.append(share)
+    return _share_registry.share_names()
 
 def to_json(obj):
     return json.dumps(obj, ensure_ascii=False) # 𡵅 に対応するため

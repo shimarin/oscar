@@ -1,3 +1,4 @@
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 import os,json,time,re
 
@@ -107,7 +108,7 @@ def share_search(share_name):
     limit = int(flask.request.args.get("limit") or "20")
 
     if q == "" or q == None:
-        return flask.jsonify({"count":0, rows:[]})
+        return flask.jsonify({"count":0, "rows":[]})
 
     start_time = time.clock()
     with oscar.context(share.real_path("/")) as context:
@@ -120,7 +121,7 @@ def share_search(share_name):
 
 @app.route('/<share_name>/<filename>', defaults={'path': ''})
 @app.route("/<share_name>/<path:path>/<filename>")
-def file(share_name, path,filename):
+def get_file(share_name, path,filename):
     if share_name == "static":
         return flask.send_from_directory(os.path.join(app.root_path, "static", path), filename)
 
@@ -129,10 +130,32 @@ def file(share_name, path,filename):
 
     return flask.send_from_directory(share.real_path(path), filename.encode("utf-8"))
 
+@app.route("/_admin/")
+def admin():
+    return flask.render_template("admin.html")
+
+@app.route("/_admin/info")
+def admin_info():
+    return flask.jsonify({"foo":"bar","shares":oscar.share_names()})
+
+@app.route("/_admin/<share_name>/info")
+def admin_share_info(share_name):
+    return flask.jsonify({"name":share_name})
+
 def run(args):
+    share_registry = oscar.ShareRegistry()
     for base_dir in args.base_dir:
         with oscar.context(base_dir) as context: pass # just check if exists
-        oscar.register_share(oscar.Share(os.path.basename(oscar.remove_trailing_slash(base_dir)),base_dir))
+        share_registry.register_share(oscar.Share(os.path.basename(oscar.remove_trailing_slash(base_dir)),base_dir))
+    oscar.set_share_registry(share_registry)
 
     oscar.log.debug("Starting web...")
+    app.run(host='0.0.0.0',debug=True)
+
+if __name__ == '__main__':
+    oscar.init()
+    oscar.set_logger(app.logger)
+    import samba
+    oscar_dir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    oscar.set_share_registry(samba.ShareRegistry(os.path.join(oscar_dir, "etc/smb.conf")))
     app.run(host='0.0.0.0',debug=True)

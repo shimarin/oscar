@@ -41,13 +41,14 @@
       </p>
     </div>
     <div ng-show="info.count == 0">
-      <div class="alert alert-warning">このフォルダの配下には検索可能なファイルがありません。(インデックス待ち{{info.queued}}件)</div>
+      <div class="alert alert-warning">このフォルダの配下には検索可能なファイルがありません。</div>
     </div>
   </div>
 
-  <div style="margin:1em;" ng-show="!!search.q">
-    <h4>'{{search.q}}'の検索結果 <small ng-show="search.count &gt; 0">{{search.count}}件中{{search.rows.length}}件</small> <small>検索時間 {{search.time|number:2}}秒</small> <a ng-show="search.count > search.rows.length" class="btn btn-primary btn-xs" href="./search?q={{q}}">全て表示</a></h4>
-    <div ng-show="search.count > 0" ng-repeat="row in search.rows" class="media"> <!-- TODO: ファイルが存在しない場合はtext-decoration:line-through;する-->
+  <div style="margin:1em;" ng-show="result">
+    <h4>'{{result.q}}'の検索結果 <small ng-show="result.count &gt; 0">{{result.count}}件中{{result.rows.length}}件</small> <small>検索時間 {{result.time|number:2}}秒</small></h4>
+    <p class="text-center" ng-show="result.count > result.rows.length"><pagination ng-model="result.page" ng-change="pageChanged()" items-per-page="limit" max-size="10" boundary-links="true" total-items="result.count" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"></pagination></p>
+    <div ng-show="result.count > 0" ng-repeat="row in result.rows" class="media"> <!-- TODO: ファイルが存在しない場合はtext-decoration:line-through;する-->
       <a class="pull-left" ng-click="open_file(row.path,row.name)" href="">
         <img ng-show="filetype(row.name)" src="/static/img/filetype/{{filetype(row.name)}}.png" width="64" height="64"/>
         <img ng-show="!filetype(row.name)" src="/static/img/filetype/unknown.png" width="64" height="64"/>
@@ -67,11 +68,12 @@
 	<span ng-repeat="snippet in row.snippets.content">..<span ng-bind-html="snippet"></span>..</span>
       </div>
     </div>
-    <div ng-show="search.count == 0">
+    <p class="text-center" ng-show="result.count > result.rows.length"><pagination ng-model="result.page" ng-change="pageChanged()" items-per-page="limit" max-size="10" boundary-links="true" total-items="result.count" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"></pagination></p>
+    <div ng-show="result.count == 0">
       該当するファイルはありません。
     </div>
   </div>
-  <div style="margin:1em;" class="alert alert-danger" ng-show="search.error">
+  <div style="margin:1em;" class="alert alert-danger" ng-show="result.error">
     検索エラー
   </div>
 
@@ -90,7 +92,6 @@
       </tr>
     </tbody>
   </table>
-
 </div>
 {%endraw%}
 {%endblock%}

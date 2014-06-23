@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-import os,ConfigParser
-import oscar
+import os,shutil,ConfigParser
+import oscar,init,config
 
 _ignoreable_sections = ["static","global","homes","printers"]
+_share_folder_base = "/var/lib/oscar"
 
 class ShareRegistry(oscar.ShareRegistry):
     def __init__(self, smbconf_file):
@@ -52,5 +53,51 @@ class ShareRegistry(oscar.ShareRegistry):
                 share_list.append(share.name)
         return share_list
 
-    def register_share(self, share):
+    def register_share(self, share) :
         raise Exception("Operation not permitted")
+
+def create_share_folder(share_name, options=None, share_dir = None):
+    if oscar.get_share(share_name):
+        return (False, "SHAREALREADYEXISTS")
+    if share_dir:
+        base_dir = os.path.dirname(share_dir)
+    else:
+        base_dir = _share_folder_base
+        share_dir = os.path.join(base_dir, share_name)
+    if os.path.exists(share_dir):
+        return (False, "DIRALREADYEXISTS")
+    if not os.path.isdir(base_dir) and not os.access(base_dir, os.W_OK):
+        return (False, "NOACCESS")
+    os.mkdir(share_dir)
+    init.init(share_dir)
+    if options:
+        config.put_all(share_dir, options)
+    # TODO: update smb.conf
+    return (True, None)
+
+def delete_share_folder(share_name):
+    share = oscar.get_share(share_name)
+    if not share: return (False, "SHARENOTEXIST")
+    share_dir = share.real_path()
+    if not os.path.isdir(share_dir): return (False, "DIRNOTEXIST")
+    # TODO: should move to some trash dir instead of deleting it directly
+    shutil.rmtree(share_dir, ignore_errors=True)
+    # TODO: update smb.conf
+    return (True, None)
+
+def update_share_folder(share_name, options):
+    share = oscar.get_share(share_name)
+    if not share: return (False, "SHARENOTEXIST")
+    share_dir = share.real_path()
+    if not os.path.isdir(share_dir): return (False, "DIRNOTEXIST")
+    config.put_all(share_dir, options)
+    return (True, None)
+
+def create_user(user_name, options=None):
+    return (False, "TBD")
+
+def delete_user(user_name):
+    return (False, "TBD")
+
+def update_user(user_name, options):
+    return (False, "TBD")

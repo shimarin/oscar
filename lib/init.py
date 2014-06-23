@@ -45,9 +45,17 @@ def create_table(context):
         "table_create --name FileQueue --flags TABLE_PAT_KEY --key_type ShortText",
         "column_create --table FileQueue --name name --flags COLUMN_SCALAR --type ShortText",
         "column_create --table FileQueue --name size --flags COLUMN_SCALAR --type UInt64",
+        
+        # Configuration
+        "table_create --name Config --flags TABLE_PAT_KEY --key_type ShortText",
+        "column_create --table Config --name value --flags COLUMN_SCALAR --type ShortText"
     ]
     for command in commands:
         context.execute_command(command)
+
+def init(base_dir):
+    with oscar.context(base_dir, True) as context:
+        create_table(context)
 
 def run(args):
     for base_dir in args.base_dir:
@@ -55,6 +63,5 @@ def run(args):
             oscar.log.error("'%s' does not exist or not a directory" % args.base_dir)
             return 1
 
-        with oscar.context(base_dir, True) as context:
-            create_table(context)
-            oscar.log.info("Database %s initialized." % base_dir)
+        init(base_dir)
+        oscar.log.info("Database %s initialized." % base_dir)

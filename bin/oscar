@@ -17,6 +17,7 @@ import consume
 import cleanup
 import truncate
 import extract
+import config
 
 __author__ = "Walbrix Corporation"
 __version__ = "0.0.1"
@@ -36,6 +37,7 @@ consume.parser_setup(subparsers.add_parser("consume"))
 cleanup.parser_setup(subparsers.add_parser("cleanup"))
 truncate.parser_setup(subparsers.add_parser("truncate"))
 extract.parser_setup(subparsers.add_parser("extract"))
+config.parser_setup(subparsers.add_parser("config"))
 
 args = parser.parse_args()
 

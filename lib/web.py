@@ -58,6 +58,8 @@ def info():
 def share(share_name):
     share = oscar.get_share(share_name)
     if share == None: return "Share not found", 404
+    if not os.path.isdir(share.real_path("/")):
+        return "Dir not found", 404
     return flask.render_template("share.html",share_id=share.name)
 
 @app.route("/<share_name>/_info")
@@ -66,6 +68,9 @@ def share_info(share_name):
     if share == None: return "Share not found", 404
 
     path = oscar.remove_preceding_slash(flask.request.args.get("path") or "")
+    if not os.path.isdir(share.real_path(path)):
+        return "Dir not found", 404
+    
     if path != "" and not path.endswith("/"): path = path + "/"
     with oscar.context(share.real_path("/")) as context:
         with oscar.command(context, "select") as command:
@@ -86,6 +91,8 @@ def share_dir(share_name):
     if share == None: return "Share not found", 404
 
     path = oscar.remove_preceding_slash(flask.request.args.get("path") or "")
+    if not os.path.isdir(share.real_path(path)):
+        return "Dir not found", 404
 
     offset = int(flask.request.args.get("offset") or "0")
     limit = int(flask.request.args.get("limit") or "20")

@@ -50,8 +50,8 @@
     <p class="text-center" ng-show="result.count > result.rows.length"><pagination ng-model="result.page" ng-change="pageChanged()" items-per-page="limit" max-size="10" boundary-links="true" total-items="result.count" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"></pagination></p>
     <div ng-show="result.count > 0" ng-repeat="row in result.rows" class="media"> <!-- TODO: ファイルが存在しない場合はtext-decoration:line-through;する-->
       <a class="pull-left" ng-click="open_file(row.path,row.name)" href="">
-        <img ng-show="filetype(row.name)" src="/static/img/filetype/{{filetype(row.name)}}.png" width="64" height="64"/>
-        <img ng-show="!filetype(row.name)" src="/static/img/filetype/unknown.png" width="64" height="64"/>
+        <img ng-show="filetype(row.name)" ng-src="/static/img/filetype/{{filetype(row.name)}}.png" width="64" height="64"/>
+        <img ng-show="!filetype(row.name)" ng-src="/static/img/filetype/unknown.png" width="64" height="64"/>
       </a>
       <div class="media-body">
         <h4 class="media-heading">

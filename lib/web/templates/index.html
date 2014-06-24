@@ -6,7 +6,7 @@
 <div style="margin-top:1em;" ng-controller="IndexController">
   <div ng-show="!info.error">
     <h3>利用可能な共有フォルダ</h3>
-    <ul class="media-list">
+    <ul class="media-list" ng-show="info.shares.length > 0">
       <li class="media" ng-repeat="share in info.shares">
         <a href="{{share.name}}" class="pull-left"><img class="pull-left" src="/static/img/filetype/folder.png" width="48" height="48"></a>
         <div class="media-body">
@@ -15,6 +15,10 @@
         </div>
       </li>
     </ul>
+    
+    <div class="alert alert-warning" ng-show="info.shares.length == 0">
+      共有フォルダがまだ作成されていません。<a href="_admin/" class="alert-link">管理画面で共有フォルダを作成</a>してください。
+    </div>
 
     <div class="panel panel-default">
       <div class="panel-heading">

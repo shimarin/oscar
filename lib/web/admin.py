@@ -38,7 +38,6 @@ def share_get(share_name):
 def share_create(share_name):
     # TODO: disable some characters to use http://internet.designcross.jp/2010/02/blog-post.html
     params = flask.request.json
-    print params
     success, info = samba.create_share_folder(share_name, 
         params[u"comment"] if u"comment" in params else None,
         params[u"options"] if u"options" in params else {})

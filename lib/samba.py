@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os,shutil,configobj,getpass,json
+import os,sys,shutil,configobj,getpass,json
 import pypassdb.passdb
 import oscar,init,config
 
@@ -21,7 +21,16 @@ class ShareRegistry(oscar.ShareRegistry):
         self.smbconf = None
         self.smbconf_file = smbconf_file
 
+    def _get_empty_conf(self):
+        parser = configobj.ConfigObj(encoding="utf-8")
+        parser.initial_comment.append("oscar share config file included from smb.conf")
+        return parser
+
     def _get_parser(self):
+        if not os.path.exists(self.smbconf_file):
+            parser = self._get_empty_conf()
+            parser.write(open(self.smbconf_file, "w"))
+
         timestamp = os.stat(self.smbconf_file).st_mtime
         if not self.smbconf or not self.smbconf_timestamp or self.smbconf_timestamp < timestamp:
             #self.smbconf = ConfigParser.SafeConfigParser({"guest ok":"no","writable":"no","locking":"yes","valid users":None})
@@ -73,8 +82,9 @@ class ShareRegistry(oscar.ShareRegistry):
                 share_list.append(share.name)
         return share_list
 
-    def _save(self):
-        parser = self._get_parser()
+    def _save(self, parser=None):
+        if parser == None:
+            parser = self._get_parser()
         parser.write(open(self.smbconf_file + ".tmp", "w"))
         shutil.copyfile(self.smbconf_file, self.smbconf_file + ".bak")
         shutil.move(self.smbconf_file + ".tmp", self.smbconf_file)
@@ -89,7 +99,7 @@ class ShareRegistry(oscar.ShareRegistry):
         if share.writable: section[u"writable"] = "yes"
         if share.guest_ok: section[u"guest ok"] = "yes"
         parser[share.name] = section
-        self._save()
+        self._save(parser)
         return True
     
     def remove_share(self, share_name):
@@ -97,7 +107,7 @@ class ShareRegistry(oscar.ShareRegistry):
         parser = self._get_parser()
         if share_name not in parser: return False
         del parser[share_name]
-        self._save()
+        self._save(parser)
         return True
     
     def update_share(self, share):
@@ -109,7 +119,7 @@ class ShareRegistry(oscar.ShareRegistry):
         elif u"comment" in section:
             del section[u"comment"]
         # TODO: other properties...
-        self._save()
+        self._save(parser)
         return True
 
 class UserRegistry(oscar.UserRegistry):

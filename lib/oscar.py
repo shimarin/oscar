@@ -10,6 +10,7 @@ import gi.repository.Groonga    #@UnresolvedImport
 
 log = None
 _share_registry = None
+_user_registry = None
 
 def logger_init(name, verbose=False, filename=None):
     """Initialize logger instance."""
@@ -83,6 +84,10 @@ def set_share_registry(share_registry):
     global _share_registry
     _share_registry = share_registry
 
+def set_user_registry(user_registry):
+    global _user_registry
+    _user_registry = user_registry
+
 def fin():
     gi.repository.Groonga.fin()
 
@@ -97,14 +102,15 @@ def remove_trailing_slash(dirname):
     return re.sub(r'\/+$', "", dirname)
 
 class Share:
-    def __init__(self, name, path, guest_ok=False, writable=False, comment=None,locking=True,valid_users=None):
+    def __init__(self, name, path, guest_ok=False, writable=False, comment=None,locking=True,valid_users=None,options=None):
         self.name = name if isinstance(name, unicode) else name.decode("utf-8")
-        self.path = remove_trailing_slash(path)
+        self.path = remove_trailing_slash(path) # must be str
         self.guest_ok = guest_ok
         self.writable = writable
         self.comment = comment if isinstance(comment, unicode) else comment.decode("utf-8") if comment else None
         self.locking = locking
         self.valid_users = valid_users
+        self.options = options
 
     def real_path(self, path):
         if isinstance(path, unicode): path = path.encode("utf-8")
@@ -149,6 +155,66 @@ def get_share(name):
 
 def share_names():
     return _share_registry.share_names()
+
+def register_share(share):
+    return _share_registry.register_share(share)
+
+def remove_share(share_name):
+    return _share_registry.remove_share(share_name)
+
+def update_share(share):
+    return _share_registry.update_share(share)
+
+class User:
+    def __init__(self, name, admin):
+        self.name = name if isinstance(name,str) else name.encode("utf-8")
+        self.admin = admin
+
+class UserRegistry:
+    def __init__(self):
+        self.users = []
+    def auth(self, name, password):
+        user = self.get_user(name)
+        if not user: return False
+        return user.password == password
+    def user_exists(self, name):
+        return any(lambda x:x.name == name, self.users)
+    def get_user(self, name):
+        return (filter(lambda x:x.name == name, self.users) + [None])[0]
+    def user_names(self):
+        return map(lambda x:x.name,self.users)
+    def register_user(self, user, password):
+        if self.user_exists(user.name):
+            raise Exception("User %s already exists" % user.name)
+        self.users.append(user)
+    def remove_user(self, user_name):
+        raise Exception("TBD")
+    def set_password(self, user_name, password):
+        raise Exception("TBD")
+
+def user_names():
+    return _user_registry.user_names()
+
+def get_user(name):
+    return _user_registry.get_user(name)
+
+def register_user(user, password):
+    return _user_registry.register_user(user, password)
+
+def update_user(user, password=None):
+    return _user_registry.update_user(user, password)
+
+def remove_user(user_name):
+    return _user_registry.remove_user(user_name)
+
+def set_user_password(user_name, password):
+    return _user_registry.set_password(user_name, password)
+
+def check_user_password(user_name, password):
+    return _user_registry.check_user_password(user_name, password)
+
+def admin_user_exists():
+    return _user_registry.admin_user_exists()
 
 def to_json(obj):
     return json.dumps(obj, ensure_ascii=False) # 𡵅 に対応するため

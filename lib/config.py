@@ -55,7 +55,7 @@ def put_all(base_dir, configs):
     with oscar.context(base_dir) as context:
         with oscar.command(context, "load") as command:
             command.add_argument("table", "Config")
-            rows = map(lambda x,y:{"_key":x,"value":oscar.to_json(y)}, configs.items())
+            rows = map(lambda (x,y):{"_key":x,"value":oscar.to_json(y)}, configs.items())
             command.add_argument("values", oscar.to_json(rows))
             command.execute()
 

@@ -1,6 +1,8 @@
 *.pyc
 *~
 *#
+*.bak
 etc/smb.conf
+etc/smbusers
 .settings
 

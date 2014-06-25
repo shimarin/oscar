@@ -10,10 +10,18 @@ def truncate_table(context, table_name):
         command.add_argument("table", table_name)
         return json.loads(command.execute())
 
-def truncate(context):
+def _truncate(context):
     truncate_table(context, "Files")
     truncate_table(context, "Fulltext")
     truncate_table(context, "FileQueue")
+    return True
+
+def truncate(base_dir_or_context):
+    if isinstance(base_dir_or_context, oscar.Context):
+        return _truncate(base_dir_or_context)
+    #else
+    with oscar.context(base_dir_or_context) as context: # assume base_dir
+        return _truncate(context)
 
 def run(args):
     for base_dir in args.base_dir:

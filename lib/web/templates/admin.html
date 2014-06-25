@@ -28,23 +28,46 @@
             <div class="form-group">
               <label class="col-sm-2 control-label">共有名</label>
               <div class="col-sm-10">
-                  <input ng-show="share.new" type="text" class="form-control" ng-model="share.name" ng-required="true">
-                  <p ng-show="!share.new" class="form-control-static">{{share.name}}</p>
+                <input ng-show="share.new" type="text" class="form-control" name="name" ng-model="share.name" ng-maxlength="32" ng-required="true" folder-name>
+                <p ng-show="!share.new" class="form-control-static">{{share.name}}</p>
+                <span class="text-danger" ng-show="shareForm.name.$error.required">入力必須です</span>
+                <span class="text-danger" ng-show="shareForm.name.$error.folderName">使用できない文字が含まれています</span>
+                <span class="text-danger" ng-show="shareForm.name.$error.maxlength">最大32文字まで</span>
               </div>
             </div>
             <div class="form-group">
               <label class="col-sm-2 control-label">共有の説明文</label>
               <div class="col-sm-10">
-                  <input type="text" class="form-control" ng-model="share.comment">
+                  <input type="text" class="form-control" name="comment" ng-model="share.comment" ng-maxlength="64">
+                <span class="text-danger" ng-show="shareForm.comment.$error.maxlength">最大64文字まで</span>
               </div>
             </div>
             <div class="form-group">
               <label class="col-sm-2 control-label">自動同期元</label>
               <div class="col-sm-10">
-                  <input type="text" class="form-control" ng-model="share.options.syncorigin">
+                <div class="input-group">
+                  <input type="text" class="form-control" name="syncorigin" ng-model="share.options.syncorigin.path" 
+                    ng-pattern="/^\/\/[a-zA-Z0-9_-\.]{1,32}\/.+$/">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" ng-click="testSyncOrigin()" type="button" ng-disabled="!shareForm.syncorigin.$valid || !share.options.syncorigin.path">接続テスト</button>
+                  </span>
+                </div><!-- /input-group -->
                 <p class="help-block"><strong>//</strong>ホスト名又はIPアドレス<strong>/</strong>共有フォルダのパス</p>
+                <span class="text-danger" ng-show="shareForm.syncorigin.$error.pattern">書式が不正です</span>
               </div>
             </div>
+           <div class="form-group">
+             <label class="col-sm-2 control-label">自動同期認証</label>
+             <div class="col-sm-5">
+               <input type="text" class="form-control" name="username" ng-model="share.options.syncorigin.username" ng-required="share.options.syncorigin.password">
+               <p class="help-block">同期元へ接続するためのユーザー名</p>
+                <span class="text-danger" ng-show="shareForm.username.$error.required">入力必須です</span>
+             </div>
+             <div class="col-sm-5">
+               <input type="password" class="form-control" name="password" ng-model="share.options.syncorigin.password">
+               <p class="help-block">パスワード</p>
+             </div>
+           </div>
             <div class="form-group">
               <label class="col-sm-2 control-label">自動同期スケジュール</label>
               <div class="col-sm-10">
@@ -76,7 +99,7 @@
           <h4 class="panel-title">共有フォルダに対する操作</h4>
         </div>
         <div class="panel-body">
-	      <button class="btn btn-warning">検索インデックスのリセット</button>
+	      <button class="btn btn-warning" ng-click="truncate_share_index()">検索インデックスのリセット</button>
 	      <button class="btn btn-danger" ng-click="delete_share()">共有フォルダの削除</button>
 	      <span class="text-danger" ng-show="share.opErrorMessage">{{share.opErrorMessage}}</span>
 	    </div>
@@ -106,19 +129,26 @@
             <div class="form-group">
              <label class="col-sm-2 control-label">ユーザー名</label>
              <div class="col-sm-10">
-                 <input ng-show="user.new" type="text" class="form-control" ng-model="user.name" ng-required="true">
-                 <p ng-show="!user.new" class="form-control-static">{{user.name}}</p>
+               <input ng-show="user.new" type="text" class="form-control" name="name" ng-model="user.name" 
+                 ng-required="true" ng-minlength="2" ng-maxlength="20" ng-pattern="/^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$/">
+               <p ng-show="!user.new" class="form-control-static">{{user.name}}</p>
+               <span class="text-danger" ng-show="userForm.name.$error.required">入力必須です</span>
+               <span class="text-danger" ng-show="userForm.name.$error.maxlength">最大20文字まで</span>
+               <span class="text-danger" ng-show="userForm.name.$error.pattern">2文字に満たないか、使用できない文字が含まれています</span>
              </div>
            </div>
            <div class="form-group">
              <label class="col-sm-2 control-label">パスワード</label>
              <div class="col-sm-5">
-               <input type="password" class="form-control" ng-model="user.password" ng-required="user.new">
+               <input type="password" class="form-control" name="password" ng-model="user.password" ng-required="user.new">
                <p class="help-block" ng-show="!user.new">変更する場合のみ入力</p>
+               <span class="text-danger" ng-show="userForm.password.$error.required">入力必須です</span>
              </div>
              <div class="col-sm-5">
-               <input type="password" class="form-control" ng-model="user.password_cfm" ng-required="user.new">
+               <input type="password" class="form-control" name="password_cfm" ng-model="user.password_cfm" ng-required="user.new || (user.password && user.password != '')" match="user.password">
                <p class="help-block">確認のため再度入力</p>
+               <span class="text-danger" ng-show="userForm.password_cfm.$error.required">入力必須です</span>
+               <span class="text-danger" ng-show="userForm.password_cfm.$error.mismatch">一致していません</span>
              </div>
            </div>
            <div class="form-group">

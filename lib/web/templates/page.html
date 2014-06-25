@@ -5,15 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-    {%if True%}
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/latest/css/bootstrap.css">
-    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-resource.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-sanitize.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.2.10/angular-locale_ja-jp.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.js"></script>
-    {%else%}
+    {%if config.PRODUCTION%}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <script src="{{ url_for('static', filename='js/jquery.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/angular.min.js')}}"></script>
@@ -21,8 +13,17 @@
     <script src="{{ url_for('static', filename='js/angular-sanitize.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/angular-locale_ja-jp.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/ui-bootstrap-tpls.min.js')}}"></script>
-    {%endif%}
+    <script src="{{ url_for('static', filename='js/oscar.min.js')}}"></script>
+    {%else%}
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/latest/css/bootstrap.css">
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-resource.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-sanitize.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.2.10/angular-locale_ja-jp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.js"></script>
     <script src="{{ url_for('static', filename='js/oscar.js')}}"></script>
+    {%endif%}
     <style type="text/css">
       span.keyword { color:red; font-weight:bold; }
     </style>
@@ -38,8 +39,12 @@
 	  <li{%if request.path.startswith("/_admin/")%} class="active"{%endif%}><a href="/_admin/"><span class="glyphicon glyphicon-cog"></span> 管理</a></li> 
 	  <li{%if request.path=="/"%} class="active"{%endif%}><a href="/"><span class="glyphicon glyphicon-home"></span> Home</a></li>
 	</ul>
-	{%if g.username%}<div class="pull-right" style="padding: 10px 15px;"><span class="glyphicon glyphicon-user"></span> {{g.username}}</div>{%endif%}
-
+	<div class="pull-right" style="padding: 10px 15px;">
+	   {%if g.username%}<span class="glyphicon glyphicon-user"></span> {{g.username}}
+	   {%else%}
+	   <a href="/login"><span class="glyphicon glyphicon-log-in"></span> ログイン</a>
+	   {%endif%}
+    </div>
 	<h3 class="text-muted" style="margin-top: 0;margin-bottom: 0;line-height: 40px;padding-bottom: 19px;">全文検索NAS</h3>
       </div>
 
@@ -50,6 +55,7 @@
       </div>
     </div>
   </body>
+  {% raw %}
   <script type="text/ng-template" id="about.html">
     <div class="modal-header">
       <button type="button" class="close" ng-click="$dismiss()" aria-hidden="true">&times;</button>
@@ -82,4 +88,23 @@
       <button type="button" class="btn btn-primary" ng-click="$close()">閉じる</button>
     </div>
   </script>
+  <script type="text/ng-template" id="messagebox.html">
+    <div class="modal-body">
+      <h3>{{message}}</h3>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-{{{true:'danger',false:'primary'}[!!options.danger]}}" ng-click="$close()">{{{true:'OK',false:'了解'}[!!options.cancel]}}</button>
+      <button ng-show="options.cancel" class="btn btn-default" ng-click="$dismiss()">キャンセル</button>
+    </div>
+  </script>
+  <script type="text/ng-template" id="progressbar.html">
+    <div class="modal-header">
+      {{message}}
+    </div>
+    <div class="modal-body">
+      <progressbar class="progress-striped active" animate="false" value="100">
+      </progressbar>
+    </div>
+  </script>
+  {% endraw %}
 </html>

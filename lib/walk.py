@@ -66,10 +66,11 @@ def enqueue(context, base_dir, filename, qw = None):
             queue_should_be_flushed = True
         if qw.enqueue(filename,stat.st_size):
             oscar.log.debug("%s enqueued" % filename)
-            return True
         else:
             oscar.log.debug("%s is not enqueued" % filename)
+            return False
         if queue_should_be_flushed: qw.flush()
+        return True
     else:
         oscar.log.debug("%s skipped because file already exists on database" % filename)
     return False

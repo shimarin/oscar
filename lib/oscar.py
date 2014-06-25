@@ -146,6 +146,8 @@ class ShareRegistry:
         if self.share_exists(share.name):
             raise Exception("Share %s already exists" % share.name)
         self.shares.append(share)
+    def check_user_credential(self, share_name, user_name):
+        return user_name is not None
 
 def share_exists(name):
     return _share_registry.share_exists(name)
@@ -164,6 +166,9 @@ def remove_share(share_name):
 
 def update_share(share):
     return _share_registry.update_share(share)
+
+def check_user_credential(share_name, user_name):
+    return _share_registry.check_user_credential(share_name, user_name)
 
 class User:
     def __init__(self, name, admin):

@@ -21,3 +21,5 @@ if os.path.isdir(log_dir) and os.access(log_dir, os.W_OK):
 oscar.set_share_registry(samba.ShareRegistry(os.path.join(oscar_dir, "etc/smb.conf")))
 
 application = web.app
+if os.path.isfile(os.path.join(oscar_dir, "lib/web/static/js/oscar.min.js")):
+    application.config["PRODUCTION"] = True

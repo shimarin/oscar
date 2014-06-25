@@ -4,16 +4,16 @@ Created on 2014/06/24
 @author: shimarin
 '''
 
+import os,tempfile
 import flask
-import oscar,samba
+import oscar,samba,sync
 
 app = flask.Blueprint(__name__, "admin")
 
 @app.before_request
 def before_request():
     if not oscar.admin_user_exists(): return
-    auth = flask.request.authorization
-    if not auth or not oscar.check_user_password(auth.username, auth.password) or not oscar.get_user(auth.username).admin:
+    if not flask.g.username or not oscar.get_user(flask.g.username).admin:
         return flask.Response('You have to login with proper credentials', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
 @app.route("/")
@@ -27,6 +27,21 @@ def info():
 @app.route("/share")
 def share():
     return flask.Response(oscar.to_json(map(lambda x:{"name":x}, oscar.share_names())),  mimetype='application/json')
+
+@app.route("/test_sync_origin")
+def test_sync_origin():
+    path = flask.request.args.get("path").encode("utf-8")
+    username = flask.request.args.get("username").encode("utf-8")
+    password = flask.request.args.get("password").encode("utf-8")
+    
+    tempdir = tempfile.mkdtemp()
+
+    try:
+        mount_command = sync.mount_command(path, username, password, tempdir)
+        rst = os.system("%s && sudo umount %s" % (mount_command, tempdir))
+    finally:
+        os.rmdir(tempdir)
+    return flask.jsonify({"success":rst == 0,"info":rst})
 
 @app.route("/share/<share_name>", methods=['GET'])
 def share_get(share_name):
@@ -54,6 +69,11 @@ def share_update(share_name):
 @app.route("/share/<share_name>", methods=['DELETE'])
 def share_delete(share_name):
     success, info = samba.delete_share_folder(share_name)
+    return flask.jsonify({"success":success, "info":info})
+
+@app.route("/share/<share_name>/truncate", methods=['POST'])
+def share_truncate(share_name):
+    success, info = samba.truncate_share_folder_index(share_name)
     return flask.jsonify({"success":success, "info":info})
 
 @app.route("/user")

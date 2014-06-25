@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import os,sys,shutil,configobj,getpass,json
+import os,shutil,configobj,getpass,json
 import pypassdb.passdb
-import oscar,init,config
+import oscar,init,config,truncate
 
 _ignoreable_sections = ["static","global","homes","printers"]
 _share_folder_base = "/var/lib/oscar"
@@ -251,6 +251,13 @@ def update_share_folder(share_name, comment, options):
     config.put_all(share_dir, options)
     share.comment = comment
     rst = oscar.update_share(share)
+    return (rst, None)
+
+def truncate_share_folder_index(share_name):
+    share = oscar.get_share(share_name)
+    if not share: return (False, "SHARENOTEXIST")
+    if not os.path.isdir(share.path): return (False, "DIRNOTEXIST")
+    rst = truncate.truncate(share.path)
     return (rst, None)
 
 if __name__ == '__main__':

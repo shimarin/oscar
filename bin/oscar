@@ -18,6 +18,8 @@ import cleanup
 import truncate
 import extract
 import config
+import sync
+import watch
 
 __author__ = "Walbrix Corporation"
 __version__ = "0.0.1"
@@ -38,6 +40,8 @@ cleanup.parser_setup(subparsers.add_parser("cleanup"))
 truncate.parser_setup(subparsers.add_parser("truncate"))
 extract.parser_setup(subparsers.add_parser("extract"))
 config.parser_setup(subparsers.add_parser("config"))
+sync.parser_setup(subparsers.add_parser("sync"))
+watch.parser_setup(subparsers.add_parser("watch"))
 
 args = parser.parse_args()
 

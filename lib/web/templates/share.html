@@ -36,8 +36,8 @@
       <p><input type="text" ng-model="q" placeholder="keyword" size="50" focus="true"/> <span ng-show="search.$resolved === false"><span class="glyphicon glyphicon-refresh"></span> 検索中...</span></p>
       <p>表示件数 
         <label class="radio-inline"><input type="radio" ng-model="limit" ng-value="20">20件ずつ</label>
+        <label class="radio-inline"><input type="radio" ng-model="limit" ng-value="50">50件ずつ</label>
         <label class="radio-inline"><input type="radio" ng-model="limit" ng-value="100">100件ずつ</label>
-        <label class="radio-inline"><input type="radio" ng-model="limit" ng-value="500">500件ずつ</label>
       </p>
     </div>
     <div ng-show="info.count == 0">
@@ -48,7 +48,11 @@
   <div style="margin:1em;" ng-show="result">
     <h4>'{{result.q}}'の検索結果 <small ng-show="result.count &gt; 0">{{result.count}}件中{{result.rows.length}}件</small> <small>検索時間 {{result.time|number:2}}秒</small></h4>
     <p class="text-center" ng-show="result.count > result.rows.length"><pagination ng-model="result.page" ng-change="pageChanged()" items-per-page="limit" max-size="10" boundary-links="true" total-items="result.count" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"></pagination></p>
-    <div ng-show="result.count > 0" ng-repeat="row in result.rows" class="media"> <!-- TODO: ファイルが存在しない場合はtext-decoration:line-through;する-->
+    <div class="alert alert-warning" ng-show="thereAreDeletedFiles">
+      取り消し線表示されているファイルは削除されているかフォルダが変更されています。
+      フォルダの移動や名称変更が検索インデックスに反映されるまでには時間がかかることがあります。
+    </div>
+    <div ng-show="result.count > 0" ng-repeat="row in result.rows" class="media" ng-style="row.exists? {} : {'text-decoration':'line-through'}">
       <a class="pull-left" ng-click="open_file(row.path,row.name)" href="">
         <img ng-src="/static/img/filetype/{{filetype(row.name)?filetype(row.name):'unknown'}}.png" width="64" height="64"/>
       </a>
@@ -81,7 +85,7 @@
     <thead><tr><th>名称</th></tr></thead>
     <tbody>
       <tr ng-show="path != '/' && path != ''"><td><span class="glyphicon glyphicon-chevron-up"></span> <a href="" ng-click="move_to('..')">上の階層へ</a></td></tr>
-      <tr ng-repeat="item in dir">
+      <tr ng-repeat="item in dir.rows">
         <td ng-show="item.is_dir">
           <span class="glyphicon glyphicon-folder-close"></span> <a href="" ng-click="move_to(join_path(path,item.name))">{{item.name}}</a>
         </td>
@@ -91,6 +95,9 @@
       </tr>
     </tbody>
   </table>
+  <p class="text-center" ng-show="dir.count > dir.rows.length">
+    <pagination ng-model="dir.page" ng-change="dirPageChanged()" items-per-page="dir.limit" max-size="10" boundary-links="true" total-items="dir.count" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"></pagination>
+  </p>
 </div>
 {%endraw%}
 {%endblock%}

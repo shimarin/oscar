@@ -155,7 +155,12 @@ def share_dir(share_name):
     dirs = filter(lambda x:not x["name"].startswith('.'), map(lambda x:{"name":x if isinstance(x,unicode) else x.decode("utf-8"), "is_dir":True}, dirs))
     files = filter(lambda x:not x["name"].startswith('.'), map(lambda x:{"name":x if isinstance(x,unicode) else x.decode("utf-8"), "is_dir":False}, files))
 
-    return flask.Response(oscar.to_json((dirs + files)[offset:offset + limit]),  mimetype='application/json')
+    rst = {
+        "count":len(dirs) + len(files),
+        "limit":limit,
+        "rows":(dirs + files)[offset:offset + limit]
+    }
+    return flask.jsonify(rst)
 
 @app.route("/<share_name>/_search")
 def exec_search(share_name):
@@ -176,6 +181,9 @@ def exec_search(share_name):
     start_time = time.clock()
     with oscar.context(share.real_path("/")) as context:
         result = search.search(context,path,q, offset, limit)
+    for row in result["rows"]:
+        path = oscar.remove_preceding_slash(row["path"].encode("utf-8"))
+        row["exists"] = os.path.exists(os.path.join(share.path, path,row["name"].encode("utf-8")))
     search_time = time.clock() - start_time
     result["q"] = q
     result["time"] = search_time

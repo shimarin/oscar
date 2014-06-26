@@ -16,6 +16,7 @@ def cleanup(context, base_dir):
             result = json.loads(command.execute())
         total = result[0][0][0]
         rows=result[0][2:]
+        #oscar.log.debug("total:%d offset:%d" % (total, offset))
         for row in rows:
             _id,path,name = row[0],row[1].encode("utf-8"),row[2].encode("utf-8")
             exact_filename = os.path.join(base_dir,path if path != "/" else "",name)

@@ -9,7 +9,7 @@ def parser_setup(parser):
     parser.add_argument("--id-prefix")
     parser.set_defaults(func=run,name="consume")
 
-def consume(context, base_dir, id_prefix, utf8_check, limit=1):
+def consume(context, base_dir, limit=100, id_prefix=None, utf8_check=False):
     with oscar.command(context, "select") as command:
         command.add_argument("table", "FileQueue")
         command.add_argument("output_columns", "_id,_key,name")
@@ -35,4 +35,4 @@ def run(args):
     for base_dir in args.base_dir:
         while True:
             with oscar.context(base_dir) as context:
-                if consume(context, base_dir, args.id_prefix, args.utf8_check,100) == 0: break
+                if consume(context, base_dir, 100, args.id_prefix, args.utf8_check) == 0: break

@@ -35,6 +35,7 @@ def sync(base_dir):
     if password == u"": password = None
     
     tempdir = tempfile.mkdtemp()
+    
     try:
         rst = os.system(mount_command(path, username, password, tempdir))
         if rst != 0:
@@ -83,7 +84,7 @@ def schedule_sync():
                 sched = setup_new_scheduler()
                 sched.start()
                 smbconf_time = new_smbconf_time
-            time.sleep(10)
+            time.sleep(60)
     except KeyboardInterrupt:
         sched.shutdown()
 

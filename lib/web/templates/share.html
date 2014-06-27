@@ -62,7 +62,7 @@
             <span ng-show="row.snippets.name.length > 0" ng-repeat="snippet in row.snippets.name"><span ng-bind-html="snippet"></span></span>
             <span ng-show="!row.snippets.name || row.snippets.name.length == 0">{{row.name}}</span>
           </a>
-          <small>{{row.size|number}}バイト {{row.mtime|date:'yyyy-MM-dd HH:mm'}}更新</small>
+          <small>{{row.size|number}}バイト {{row.mtime * 1000|date:'yyyy-MM-dd HH:mm'}}更新</small>
         </h4>
 	場所: <a ng-click="move_to(row.path)" href="">
           <span ng-show="row.snippets.path.length > 0" ng-repeat="snippet in row.snippets.path"><span ng-bind-html="snippet"></span></span>

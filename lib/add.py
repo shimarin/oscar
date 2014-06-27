@@ -69,7 +69,7 @@ def add_file(context, base_dir, filename, utf8_check=False):
 
     path = os.path.dirname(filename)
     if not path.endswith('/'): path += '/'
-    row = {"_key":oscar.sha1(filename), "path":path, "path_ft":path, "name":os.path.basename(filename), "mtime":stat.st_mtime * 1000, "size":stat.st_size, "fulltext":file_hash }
+    row = {"_key":oscar.sha1(filename), "path":path, "path_ft":path, "name":os.path.basename(filename), "mtime":stat.st_mtime, "size":stat.st_size, "fulltext":file_hash }
     oscar.log.info("Adding: %s" % exact_filename)
 
     with oscar.command(context, "load") as command:

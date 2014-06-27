@@ -40,7 +40,7 @@ def check_if_uptodate(context, filename,mtime):
         result = json.loads(command.execute())
     rows = result[0][2:]
     if len(rows) == 0: return False
-    return (rows[0][1] >= mtime * 1000)
+    return (rows[0][1] >= mtime)
 
 def check_if_ignoreable(base_dir, filename):
     ignore_prefixes = [".", "#", "~$"]

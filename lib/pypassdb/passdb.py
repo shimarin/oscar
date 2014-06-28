@@ -49,3 +49,17 @@ class PassDB:
 
     def close(self):
         self.db.close()
+
+class PassDBContext:
+    def __init__(self, name, hash_size=0):
+        self.name = name
+        self.hash_size = hash_size
+    def __enter__(self):
+        self.passdb = PassDB(self.name, self.hash_size)
+        return self.passdb
+    def __exit__(self,exc_type, exc_value, traceback):
+        self.passdb.close()
+        return exc_type is None
+
+def passdb_open(name, hash_size=0):
+    return PassDBContext(name, hash_size)

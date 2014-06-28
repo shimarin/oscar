@@ -60,6 +60,7 @@ class ShareRegistry(oscar.ShareRegistry):
         if not section: return None
         self._set_default_values(section)
         path = section[u"path"].encode("utf-8") # should be str
+        if not os.path.isdir(path): return None
         guest_ok = section.as_bool(u"guest ok")
         writable = section.as_bool(u"writable")
         comment = section.get(u"comment")
@@ -94,7 +95,7 @@ class ShareRegistry(oscar.ShareRegistry):
     def register_share(self, share) :
         parser = self._get_parser()
         if share.name in parser: return False
-        section = {u"path":share.path.decode("utf-8"),u"force user":getpass.getuser()}
+        section = {u"path":share.path.decode("utf-8"),u"force user":getpass.getuser(),u"veto files":u".oscar"}
         if share.comment and share.comment != "": section[u"comment"] = share.comment
         if share.writable: section[u"writable"] = "yes"
         if share.guest_ok: section[u"guest ok"] = "yes"
@@ -127,16 +128,17 @@ class UserRegistry(oscar.UserRegistry):
         self.passdb_file = passdb_file
         self.smbusers = smbusers
 
-    def _get_passdb(self):
-        return pypassdb.passdb.PassDB(self.passdb_file)
+    def _open_passdb(self):
+        return pypassdb.passdb.passdb_open(self.passdb_file)
     
     def user_names(self):
-        return map(lambda x:x.username, self._get_passdb())
+        with self._open_passdb() as passdb:
+            return map(lambda x:x.username, passdb)
     
     def user_exists(self, name):
         if isinstance(name, unicode): name = name.encode("utf-8")
-        passdb = self._get_passdb()
-        return name in passdb
+        with self._open_passdb() as passdb:
+            return name in passdb
     
     def _is_admin_user(self, acct_desc):
         return "admin" in acct_desc and acct_desc["admin"]
@@ -150,10 +152,10 @@ class UserRegistry(oscar.UserRegistry):
 
     def get_user(self, name):
         if isinstance(name, unicode): name = name.encode("utf-8")
-        passdb = self._get_passdb()
-        if name not in passdb: return None
-        user = passdb[name]
-        return oscar.User(user.username, self._is_admin_user(self._acct_desc(user)))
+        with self._open_passdb() as passdb:
+            if name not in passdb: return None
+            user = passdb[name]
+            return oscar.User(user.username, self._is_admin_user(self._acct_desc(user)))
 
     def _update_smbusers(self, passdb):
         usermap = {}
@@ -175,46 +177,47 @@ class UserRegistry(oscar.UserRegistry):
     
     def register_user(self, user, password):
         user_name = user.name.encode("utf-8") if isinstance(user.name, unicode) else user.name
-        passdb = self._get_passdb()
-        if user_name in passdb: return False
-        user_record = pypassdb.user.User(user_name)
-        acct_desc = {"admin":user.admin, "system_user":None} # "oscar_" + mhash.MHASH(mhash.MHASH_CRC32B, user_name).hexdigest()
-        user_record.acct_desc = json.dumps(acct_desc)
-        user_record.set_password(password)
-        passdb.append(user_record)
-        self._update_smbusers(passdb)
+        with self._open_passdb() as passdb:
+            if user_name in passdb: return False
+            user_record = pypassdb.user.User(user_name)
+            acct_desc = {"admin":user.admin, "system_user":None} # "oscar_" + mhash.MHASH(mhash.MHASH_CRC32B, user_name).hexdigest()
+            user_record.acct_desc = json.dumps(acct_desc)
+            user_record.set_password(password)
+            passdb.append(user_record)
+            self._update_smbusers(passdb)
+
         reload_samba()
         return True
     
     def update_user(self, user, password = None):
         user_name = user.name.encode("utf-8") if isinstance(user.name, unicode) else user.name
-        passdb = self._get_passdb()
-        if not user_name in passdb: return False
-        user_record = passdb[user_name]
-        acct_desc = {"admin":user.admin, "system_user":None}
-        user_record.acct_desc = json.dumps(acct_desc)
-        if password: user_record.set_password(password)
-        passdb[user_name] = user_record
+        with self._open_passdb() as passdb:
+            if not user_name in passdb: return False
+            user_record = passdb[user_name]
+            acct_desc = {"admin":user.admin, "system_user":None}
+            user_record.acct_desc = json.dumps(acct_desc)
+            if password: user_record.set_password(password)
+            passdb[user_name] = user_record
         return True
     
     def remove_user(self, name):
         if isinstance(name, unicode): name = name.encode("utf-8")
-        passdb = self._get_passdb()
-        if name not in passdb: return False
-        del passdb[name]
-        self._update_smbusers(passdb)
+        with self._open_passdb() as passdb:
+            if name not in passdb: return False
+            del passdb[name]
+            self._update_smbusers(passdb)
         reload_samba()
         return True
     
     def admin_user_exists(self):
-        passdb = self._get_passdb()
-        return any(map(lambda x:self._is_admin_user(self._acct_desc(x)), passdb))
+        with self._open_passdb() as passdb:
+            return any(map(lambda x:self._is_admin_user(self._acct_desc(x)), passdb))
     
     def check_user_password(self, name, password):
         if isinstance(name, unicode): name = name.encode("utf-8")
-        passdb = self._get_passdb()
-        if name not in passdb: return False
-        return passdb[name].check_password(password)
+        with self._open_passdb() as passdb:
+            if name not in passdb: return False
+            return passdb[name].check_password(password)
 
 def create_share_folder(share_name, comment, options=None, share_dir = None):
     if oscar.get_share(share_name):

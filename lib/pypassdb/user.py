@@ -45,7 +45,7 @@ class User:
         self.bad_password_time = mintime
         self.pass_last_set_time = mintime
         self.pass_can_change_time = mintime
-        self.pass_must_change_time = maxtime
+        self.pass_must_change_time = maxtime  # suspected "UNUSED"
         self.username = username
         self.domain = ""
         self.nt_username = ""
@@ -121,6 +121,7 @@ class User:
 
     def set_password(self, pwd):
         self.nt_pw = nthash(pwd).decode("hex")
+        self.pass_last_set_time = datetime.today()
     
     def check_password(self, pwd):
         #print pwd, self.nt_pw

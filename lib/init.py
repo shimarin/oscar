@@ -24,7 +24,7 @@ def create_table(context):
         "column_create --table Files --name path_ft --flags COLUMN_SCALAR --type ShortText",
         "column_create --table Files --name name --flags COLUMN_SCALAR --type ShortText",
         "column_create --table Files --name fulltext --type Fulltext",
-        "column_create --table Files --name mtime --type Int64",
+        "column_create --table Files --name mtime --type Time",
         "column_create --table Files --name size --type Int64",
 
         # Fulltext-to-file
@@ -48,7 +48,18 @@ def create_table(context):
         
         # Configuration
         "table_create --name Config --flags TABLE_PAT_KEY --key_type ShortText",
-        "column_create --table Config --name value --flags COLUMN_SCALAR --type ShortText"
+        "column_create --table Config --name value --flags COLUMN_SCALAR --type ShortText",
+        
+        "table_create --name Log --flags TABLE_NO_KEY",
+        "column_create --table Log --name time --type Time",
+        "column_create --table Log --name category --type ShortText",
+        "column_create --table Log --name content --type ShortText",
+        
+        "table_create --name LogTime --flags TABLE_PAT_KEY --key_type Int64",
+        "column_create --table LogTime --name time --flags COLUMN_INDEX --type Log --source time",
+
+        "table_create --name LogCategory --flags TABLE_PAT_KEY --key_type ShortText",
+        "column_create --table LogCategory --name category --flags COLUMN_INDEX --type Log --source category"
     ]
     for command in commands:
         context.execute_command(command)

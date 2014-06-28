@@ -6,7 +6,7 @@ Created on 2014/06/24
 
 import os,tempfile
 import flask
-import oscar,samba,sync
+import oscar,samba,sync,log
 
 app = flask.Blueprint(__name__, "admin")
 
@@ -48,6 +48,17 @@ def share_get(share_name):
     share = oscar.get_share(share_name)
     if not share: return "Share not found", 404
     return flask.jsonify({"name":share.name,"comment":share.comment,"options":share.options})
+
+@app.route("/share/<share_name>/log", methods=['GET'])
+def share_log(share_name):
+    share = oscar.get_share(share_name)
+    if not share: return "Share not found", 404
+
+    category = flask.request.args.get("category") or None
+    offset = int(flask.request.args.get("offset") or "0")
+    limit = int(flask.request.args.get("limit") or "20")
+
+    return flask.jsonify(log.get_log(share.path, category, offset, limit))
 
 @app.route("/share/<share_name>/create", methods=['POST'])
 def share_create(share_name):

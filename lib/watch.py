@@ -3,7 +3,7 @@ Created on 2014/06/25
 
 @author: shimarin
 '''
-import os,time
+import os,time,multiprocessing
 import pyinotify,apscheduler.scheduler
 import oscar,samba,walk,cleanup,consume
 
@@ -110,8 +110,7 @@ def perform_walk():
 def perform_consume(limit):
     #oscar.log.debug("limit:%d" % limit)
     for path in get_path_map():
-        with oscar.context(path) as context:
-            consume.consume(context, path, limit)
+        consume.consume(path, limit, multiprocessing.cpu_count() + 1)
 
 def run(args):
     oscar.set_share_registry(samba.ShareRegistry(_smb_conf))

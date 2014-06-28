@@ -14,14 +14,15 @@ def _truncate(context):
     truncate_table(context, "Files")
     truncate_table(context, "Fulltext")
     truncate_table(context, "FileQueue")
+    truncate_table(context, "Log")
     return True
 
 def truncate(base_dir_or_context):
-    if isinstance(base_dir_or_context, oscar.Context):
-        return _truncate(base_dir_or_context)
+    if isinstance(base_dir_or_context, str):
+        with oscar.context(base_dir_or_context) as context: # assume base_dir
+            return _truncate(context)
     #else
-    with oscar.context(base_dir_or_context) as context: # assume base_dir
-        return _truncate(context)
+    return _truncate(base_dir_or_context) # assume it's Groonga.Context
 
 def run(args):
     for base_dir in args.base_dir:

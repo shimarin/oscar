@@ -6,7 +6,7 @@ Created on 2014/06/25
 
 import os,getpass,tempfile,re,time
 import apscheduler.scheduler
-import oscar,samba,config
+import oscar,samba,config,log
 
 oscar_dir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 _smb_conf = os.path.join(oscar_dir, "etc/smb.conf")
@@ -25,6 +25,10 @@ def mount_command(path, username, password, mountpoint):
         mount_options += ",username=%s" % username
     return "sudo mount -t cifs -o %s %s %s" % (mount_options, path, mountpoint)
 
+def sync_log(base_dir, path, success, what=None, code=None):
+    content = u"%s = %s" % (path.decode("utf-8"), " = Success" if success else "= Fail (%s:code=%d)" % (what, code))
+    log.create_log(base_dir, "sync", content)
+
 def sync(base_dir):
     syncorigin = config.get(base_dir, "syncorigin")
     if u"path" not in syncorigin or syncorigin[u"path"] == "": return False
@@ -40,6 +44,7 @@ def sync(base_dir):
         rst = os.system(mount_command(path, username, password, tempdir))
         if rst != 0:
             oscar.log.error("Unable to mount sync source %s (%d)" % (path, rst))
+            sync_log(base_dir, False, "mount", rst)
             return False
         try:
             rsync_cmd = "rsync -ax %s/ %s" % (tempdir, base_dir)
@@ -47,6 +52,7 @@ def sync(base_dir):
             rst = os.system(rsync_cmd)
             if rst != 0:
                 oscar.log.error("rsync (%s -> %s) returned error code: %d" % (path, base_dir, rst))
+                sync_log(base_dir, False, "rsync", rst)
                 return False
         finally:
             umount_cmd = "sudo umount %s" % tempdir
@@ -56,6 +62,7 @@ def sync(base_dir):
         oscar.log.debug("Deleting tempdir %s" % tempdir)
         os.rmdir(tempdir)
 
+    sync_log(base_dir, True)
     return True
 
 def setup_new_scheduler():

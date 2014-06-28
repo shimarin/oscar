@@ -2,8 +2,7 @@
 
 import os,hashlib,json
 
-import oscar
-import extract
+import oscar,extract,log
 
 def parser_setup(parser):
     parser.add_argument("-d", "--base-dir", default=".")
@@ -51,8 +50,9 @@ def add_file(context, base_dir, filename, utf8_check=False):
             if extractor:
                 try:
                     title, text = extractor(exact_filename)
-                except Exception:
+                except Exception as e:
                     oscar.log.exception("extractor")
+                    log.create_log(base_dir, "extract", u"%s (%s): %s" % (filename.decode("utf-8"), file_hash, e.message.decode("utf-8")))
                 else:
                     if utf8_check: utf8_check_by_iconv(text)
                     if len(text) > 3000000: # 3MB以上のテキストは切り捨てる(snippetつきで検索しようとしたときにgroongaが落ちるため)

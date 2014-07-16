@@ -19,6 +19,7 @@ if os.path.isdir(log_dir) and os.access(log_dir, os.W_OK):
     oscar.set_logger(web.app.logger)
 
 oscar.set_share_registry(samba.ShareRegistry(os.path.join(oscar_dir, "etc/smb.conf")))
+oscar.set_user_registry(samba.UserRegistry("/var/lib/samba/private/passdb.tdb", os.path.join(oscar_dir, "etc/smbusers")))
 
 application = web.app
 if os.path.isfile(os.path.join(oscar_dir, "lib/web/static/js/oscar.min.js")):

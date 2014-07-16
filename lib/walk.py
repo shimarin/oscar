@@ -53,6 +53,9 @@ def check_if_ignoreable(base_dir, filename):
 
 def enqueue(context, base_dir, filename, qw = None):
     exact_filename = os.path.join(base_dir, filename)
+    if not os.path.isfile(exact_filename):
+        oscar.log.debug(u"%s does not exist" % exact_filename.decode("utf-8"))
+        return False
     stat = os.stat(exact_filename)
 
     if check_if_ignoreable(base_dir, filename):

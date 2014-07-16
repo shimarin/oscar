@@ -44,7 +44,7 @@ def sync(base_dir):
         rst = os.system(mount_command(path, username, password, tempdir))
         if rst != 0:
             oscar.log.error("Unable to mount sync source %s (%d)" % (path, rst))
-            sync_log(base_dir, False, "mount", rst)
+            sync_log(base_dir, path, False, "mount", rst)
             return False
         try:
             rsync_cmd = "rsync -ax %s/ %s" % (tempdir, base_dir)
@@ -52,7 +52,7 @@ def sync(base_dir):
             rst = os.system(rsync_cmd)
             if rst != 0:
                 oscar.log.error("rsync (%s -> %s) returned error code: %d" % (path, base_dir, rst))
-                sync_log(base_dir, False, "rsync", rst)
+                sync_log(base_dir, path, False, "rsync", rst)
                 return False
         finally:
             umount_cmd = "sudo umount %s" % tempdir
@@ -62,7 +62,7 @@ def sync(base_dir):
         oscar.log.debug("Deleting tempdir %s" % tempdir)
         os.rmdir(tempdir)
 
-    sync_log(base_dir, True)
+    sync_log(base_dir, path, True)
     return True
 
 def setup_new_scheduler():

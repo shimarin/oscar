@@ -55,6 +55,7 @@ def process_dir_event(share, event_mask, event_pathname):
     pass
 
 def process_event(share, event_mask, event_pathname):
+
     if event_mask & pyinotify.IN_ISDIR: # @UndefinedVariable
         process_dir_event(share, event_mask, event_pathname)
     else:
@@ -68,7 +69,11 @@ def watch():
             oscar.log.debug(event)
         for path,share in path_map.items():
             if not event.pathname.startswith(path + '/'): continue
-            process_event(share, event.mask, event.pathname[len(share.path) + 1:])
+            if not os.path.isdir(share.path): continue
+            try:
+                process_event(share, event.mask, event.pathname[len(share.path) + 1:])
+            except IOError:
+                oscar.log.error("IOError (share deleted, perhaps)")
     
     def exclude(path):
         return path.endswith("/.oscar") # excluded if True
@@ -107,9 +112,12 @@ def watch():
 
 def perform_walk():
     for path in get_path_map():
-        with oscar.context(path) as context:
-            walk.walk(context, path)
-            cleanup.cleanup(context, path)
+        try:
+            with oscar.context(path) as context:
+                walk.walk(context, path)
+                cleanup.cleanup(context, path)
+        except IOError:
+            oscar.log.error("IOError (share deleted, perhaps)")
 
 def perform_consume(limit):
     #oscar.log.debug("limit:%d" % limit)

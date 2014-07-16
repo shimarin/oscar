@@ -1,9 +1,10 @@
+#-*- coding: utf-8 -*-
 '''
 Created on 2014/06/25
 
 @author: shimarin
 '''
-import os,time,multiprocessing
+import os,time,multiprocessing,logging
 import pyinotify,apscheduler.scheduler
 import oscar,samba,walk,cleanup,consume
 
@@ -34,12 +35,12 @@ def is_path_set_uptodate():
 
 def process_file_event(share, event_mask, event_pathname):
     if (event_mask & pyinotify.IN_CLOSE_WRITE) or (event_mask & pyinotify.IN_MOVED_TO): # @UndefinedVariable
-        oscar.log.debug("Adding %s to %s" % (event_pathname, share.name))
+        oscar.log.debug(u"Adding %s to %s" % (event_pathname.decode("utf-8"), share.name))
         with oscar.context(share.path) as context:
             walk.enqueue(context, share.path, event_pathname)
     elif (event_mask & pyinotify.IN_DELETE) or (event_mask & pyinotify.IN_MOVED_FROM): # @UndefinedVariable
         file_id = oscar.sha1(event_pathname)
-        oscar.log.debug("Removing %s from %s(%s)" % (event_pathname, share.name, file_id))
+        oscar.log.debug(u"Removing %s from %s(%s)" % (event_pathname.decode("utf-8"), share.name, file_id))
         with oscar.context(share.path) as context:
             with oscar.command(context, "delete") as command:
                 command.add_argument("table", "FileQueue")
@@ -63,7 +64,8 @@ def watch():
     def callback(event):
         if not isinstance(event, pyinotify.Event): return
         if event.mask & pyinotify.IN_IGNORED: return # @UndefinedVariable
-        oscar.log.debug(event)
+        if oscar.log.isEnabledFor(logging.DEBUG):
+            oscar.log.debug(event)
         for path,share in path_map.items():
             if not event.pathname.startswith(path + '/'): continue
             process_event(share, event.mask, event.pathname[len(share.path) + 1:])
@@ -74,7 +76,8 @@ def watch():
     path_map = get_path_map()
     path_set = get_path_set(path_map)
     last_check_time = time.time()
-    oscar.log.debug(path_set)
+    if oscar.log.isEnabledFor(logging.DEBUG):
+        oscar.log.debug(path_set)
     wm = pyinotify.WatchManager()
     notifier = pyinotify.Notifier(wm, default_proc_fun=callback)
     mask = pyinotify.IN_CLOSE_WRITE|pyinotify.IN_MOVED_FROM|pyinotify.IN_MOVED_TO|pyinotify.IN_MOVED_TO|pyinotify.IN_CREATE|pyinotify.IN_DELETE  # @UndefinedVariable
@@ -99,7 +102,8 @@ def watch():
                     if wd: wm.rm_watch(wd, rec=True, quiet=True)
                 path_map = new_path_map
                 path_set = new_path_set
-                oscar.log.debug(path_set)
+                if oscar.log.isEnabledFor(logging.DEBUG):
+                    oscar.log.debug(path_set)
 
 def perform_walk():
     for path in get_path_map():
@@ -127,3 +131,6 @@ def run(args):
     except KeyboardInterrupt:
         oscar.log.info("Shutting down job scheduler...")
         sched.shutdown()
+    except:
+        oscar.log.exception("watch")
+

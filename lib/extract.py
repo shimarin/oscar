@@ -42,7 +42,8 @@ def process_output(cmdline, timeout=30):
 
 def utf8_cleanup(text):
     if isinstance(text, str):
-        return nkf.nkf("-w", text)
+        #return nkf.nkf("-w", text)   # causes MemoryError
+        return text
     #else
     return text.encode("utf-8")
 

@@ -31,8 +31,10 @@ def share():
 @app.route("/test_sync_origin")
 def test_sync_origin():
     path = flask.request.args.get("path").encode("utf-8")
-    username = flask.request.args.get("username").encode("utf-8")
-    password = flask.request.args.get("password").encode("utf-8")
+    username = flask.request.args.get("username")
+    if username: username = username.encode("utf-8")
+    password = flask.request.args.get("password")
+    if password: password = password.encode("utf-8")
     
     tempdir = tempfile.mkdtemp()
 

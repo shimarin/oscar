@@ -94,6 +94,8 @@ def schedule_sync():
             time.sleep(60)
     except KeyboardInterrupt:
         sched.shutdown()
+    except:
+        oscar.log.exception("sync")
 
 def run(args):
     if len(args.base_dir) > 0:

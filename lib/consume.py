@@ -33,9 +33,12 @@ def consume(base_dir, limit=100, concurrency = 1, id_prefix=None, utf8_check=Fal
     jobs = map(lambda x:(base_dir, x[0], x[2].encode("utf-8"), utf8_check), rows)
     if concurrency > 1:
         pool = multiprocessing.Pool(processes=concurrency)
-        return sum(pool.map(add_file, jobs))
-    #else
-    return sum(map(add_file, jobs))
+        rst = sum(pool.map(add_file, jobs))
+        pool.close()
+        pool.join()
+    else:
+        rst = sum(map(add_file, jobs))
+    return rst
 
 def run(args):
     concurrency = args.concurrency if args.concurrency else multiprocessing.cpu_count() + 1

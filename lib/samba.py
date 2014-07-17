@@ -109,6 +109,7 @@ class ShareRegistry(oscar.ShareRegistry):
         if share_name not in parser: return False
         del parser[share_name]
         self._save(parser)
+        os.system("sudo /etc/init.d/oscar-watcher restart") # TODO: discover some better way
         return True
     
     def update_share(self, share):

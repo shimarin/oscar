@@ -79,7 +79,7 @@ class ShareRegistry(oscar.ShareRegistry):
         parser = self._get_parser()
         for section in filter(lambda x:x not in _ignoreable_sections, self._sections()):
             share = self._get_share(section, parser)
-            if share.locking:  # ignore locking = no shares
+            if share and share.locking:  # ignore locking = no shares
                 share_list.append(share.name)
         return share_list
 

@@ -190,6 +190,11 @@ def exec_search(share_name):
     #time.sleep(3)
     return flask.jsonify(result)
 
+@app.route("/<share_name>/_dup")
+def detect_dups(share_name):
+    # select --table Files --drilldown fulltext --drilldown_sortby -_nsubrecs
+    pass
+
 @app.route('/<share_name>/<filename>', defaults={'path': ''})
 @app.route("/<share_name>/<path:path>/<filename>")
 def get_file(share_name, path,filename):

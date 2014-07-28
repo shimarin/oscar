@@ -57,10 +57,14 @@ class ShareRegistry(oscar.ShareRegistry):
     def _get_share(self, name, parser):
         if name in _ignoreable_sections: return None
         section = parser.get(name)
-        if not section: return None
+        if not section:
+            oscar.log.warn(u"Section %s not found" % name)
+            return None
         self._set_default_values(section)
         path = section[u"path"].encode("utf-8") # should be str
-        if not os.path.isdir(path): return None
+        if not os.path.isdir(path):
+            oscar.log.warn("Physical path %s not found" % path)
+            return None
         guest_ok = section.as_bool(u"guest ok")
         writable = section.as_bool(u"writable")
         comment = section.get(u"comment")

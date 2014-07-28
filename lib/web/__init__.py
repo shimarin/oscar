@@ -67,6 +67,9 @@ def auth_required(error):
 
 @app.route("/")
 def index():
+    # プライベートネットワーク以外からのアクセスは認証必要
+    if not is_private_network() and not flask.g.username:
+        raise AuthRequired()
     return flask.render_template("index.html")
 
 @app.route("/login")

@@ -114,8 +114,11 @@ def perform_walk():
     for path in get_path_map():
         try:
             with oscar.context(path) as context:
+                oscar.log.info(u"Performing walk on %s..." % path.decode("utf-8"))
                 walk.walk(context, path)
+                oscar.log.info(u"Performing cleanup on %s..." % path.decode("utf-8"))
                 cleanup.cleanup(context, path)
+                oscar.log.info(u"Done cleanup on %s." % path.decode("utf-8"))
         except IOError:
             oscar.log.error("IOError (share deleted, perhaps)")
 

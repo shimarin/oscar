@@ -161,7 +161,7 @@ class UserRegistry(oscar.UserRegistry):
     def _update_smbusers(self, passdb):
         syetem_users = set(map(lambda x:x.pw_name.lower(), pwd.getpwall()))
         usermap = {}
-        for user in passdb:
+        for user in filter(lambda x:x.username, passdb):
             # acct_descフィールド内のJSONデータを取得
             acct_desc = self._acct_desc(user)
 

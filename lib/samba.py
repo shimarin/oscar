@@ -65,12 +65,16 @@ class ShareRegistry(oscar.ShareRegistry):
         if not os.path.isdir(path):
             oscar.log.warn("Physical path %s not found" % path)
             return None
+        if not os.path.isfile(oscar.get_database_name(path)):
+            oscar.log.warn("Path %s doesn't have a groonga database" % path)
+            return None
         guest_ok = section.as_bool(u"guest ok")
         writable = section.as_bool(u"writable")
         comment = section.get(u"comment")
         locking = section.as_bool(u"locking")
         valid_users = section.get(u"valid users")
         options = config.get(path)
+
         return oscar.Share(name, path, guest_ok=guest_ok, writable=writable, comment=comment,locking=locking,valid_users=valid_users,options=options)
 
     def get_share(self, name):

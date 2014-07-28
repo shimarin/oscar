@@ -11,24 +11,26 @@ app = flask.Flask(__name__)
 app.register_blueprint(admin.app, url_prefix="/_admin")
 app.config.update(JSON_AS_ASCII=False)
 
-private_address_regex = re.compile(r"(^127\.0\.0\.1)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)")
+private_address_regex = re.compile(r"(^127\.0\.0\.1)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)|(^fe80:)|(^FE80:)")
+
+class AuthRequired(Exception):
+    pass
 
 def parser_setup(parser):
     parser.add_argument("base_dir", nargs="+")
     parser.set_defaults(func=run,name="web")
 
+def is_private_network():
+    return private_address_regex.match(flask.request.remote_addr)
+
 def is_eden(request):
-    local_access = private_address_regex.match(flask.request.remote_addr)
     # eden == MSIE in private network
-    return "MSIE " in request.headers.get('User-Agent') and local_access
+    return "MSIE " in request.headers.get('User-Agent') and is_private_network()
 
 def check_access_credential(share):
-    if share.guest_ok: return True
-    if not flask.g.username: return False
-    return oscar.check_user_credential(share.name, flask.g.username)
-
-def auth_required_response():
-    return flask.Response('You have to login with proper credentials', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+    if share.guest_ok: return is_private_network()
+    if not flask.g.username or not oscar.check_user_credential(share.name, flask.g.username):
+        raise AuthRequired()
 
 @app.route("/static/js/<path:filename>")
 def js(filename):
@@ -59,14 +61,16 @@ def before_request():
     auth = flask.request.authorization
     flask.g.username = auth.username if auth and oscar.check_user_password(auth.username, auth.password) else None
 
+@app.errorhandler(AuthRequired)
+def auth_required(error):
+    return flask.Response('You have to login with proper credentials', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
 @app.route("/")
 def index():
     return flask.render_template("index.html")
 
 @app.route("/login")
 def login():
-    auth = flask.request.authorization
-    flask.g.username = auth.username if auth and oscar.check_user_password(auth.username, auth.password) else None
     if not flask.g.username:
         return flask.Response('You have to login with proper credentials', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
     #else
@@ -75,12 +79,18 @@ def login():
 @app.route("/_info")
 def info():
     shares = []
-    for share_name in oscar.share_names():
+    share_names = oscar.share_names()
+    for share_name in share_names:
         share = oscar.get_share(share_name)
         comment = share.comment if share.comment else (u"共有フォルダ" if share.guest_ok else u"アクセス制限された共有フォルダ")
         if share.guest_ok or (flask.g.username and oscar.check_user_credential(share_name, flask.g.username)):
             share_info = {"name":share.name,"comment":comment,"guest_ok":share.guest_ok}
             shares.append(share_info)
+
+    # 共有フォルダが存在するがいずれもアクセス可能な権限を持たない場合 or
+    # プライベートでないIPアドレスからアクセスされている場合 認証必要
+    if ((len(share_names) > 0 and len(shares) == 0) or not is_private_network()) and not flask.g.username:
+        raise AuthRequired()
 
     st = os.statvfs(samba.get_share_folder_base())
 
@@ -109,7 +119,8 @@ def share_index(share_name):
     if share == None: return "Share not found", 404
     if not os.path.isdir(share.real_path("/")):
         return "Dir not found", 404
-    if not check_access_credential(share): return auth_required_response()
+    check_access_credential(share)
+
     return flask.render_template("share.html",share_id=share.name)
 
 @app.route("/<share_name>/_info")
@@ -121,7 +132,7 @@ def share_info(share_name):
     if not os.path.isdir(share.real_path(path)):
         return "Dir not found", 404
     
-    if not check_access_credential(share): return auth_required_response()
+    check_access_credential(share)
 
     if path != "" and not path.endswith("/"): path = path + "/"
     with oscar.context(share.real_path("/")) as context:
@@ -146,7 +157,7 @@ def share_dir(share_name):
     if not os.path.isdir(share.real_path(path)):
         return "Dir not found", 404
 
-    if not check_access_credential(share): return auth_required_response()
+    check_access_credential(share)
 
     offset = int(flask.request.args.get("offset") or "0")
     limit = int(flask.request.args.get("limit") or "20")
@@ -167,7 +178,7 @@ def exec_search(share_name):
     share = oscar.get_share(share_name)
     if share == None: return "Share not found", 404
 
-    if not check_access_credential(share): return auth_required_response()
+    check_access_credential(share)
 
     path = flask.request.args.get("path") or ""
     q = flask.request.args.get("q")
@@ -201,7 +212,7 @@ def get_file(share_name, path,filename):
     share = oscar.get_share(share_name)
     if share == None: return "Share not found", 404
 
-    if not check_access_credential(share): return auth_required_response()
+    check_access_credential(share)
 
     return flask.send_from_directory(share.real_path(path), filename.encode("utf-8"))
 

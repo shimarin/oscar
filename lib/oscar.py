@@ -49,8 +49,11 @@ class Context:
         del self.context
         return True
 
+def get_database_name(base_dir):
+    return os.path.join(base_dir, ".oscar/groonga")
+
 def context(base_dir, create = False):
-    db_name = os.path.join(base_dir, ".oscar/groonga")
+    db_name = get_database_name(base_dir)
     if not create:
         with open(db_name) as db:
             pass # exception if db doesnot exist

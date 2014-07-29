@@ -32,11 +32,11 @@ class QueueWriter:
             command.execute()
         self.buffer = []
 
-def check_if_uptodate(context, filename,mtime):
+def check_if_uptodate(context, filename,mtime,file_id):
     with oscar.command(context, "select") as command:
         command.add_argument("table", "Files")
         command.add_argument("output_columns", "_id,mtime")
-        command.add_argument("filter","_key == '%s'" % oscar.sha1(filename))
+        command.add_argument("filter","_key == '%s'" % file_id)
         result = json.loads(command.execute())
     rows = result[0][2:]
     if len(rows) == 0: return False
@@ -51,7 +51,8 @@ def check_if_ignoreable(base_dir, filename):
     #else
     return False
 
-def enqueue(context, base_dir, filename, qw = None):
+def enqueue(context, base_dir, filename, file_id=None, qw = None):
+    if file_id is None: file_id = oscar.sha1(filename)
     exact_filename = os.path.join(base_dir, filename)
     if not os.path.isfile(exact_filename):
         oscar.log.debug(u"%s does not exist" % exact_filename.decode("utf-8"))
@@ -62,7 +63,7 @@ def enqueue(context, base_dir, filename, qw = None):
         oscar.log.debug("%s ignored" % filename)
         return False
 
-    if not check_if_uptodate(context, filename, stat.st_mtime):
+    if not check_if_uptodate(context, filename, stat.st_mtime, file_id):
         queue_should_be_flushed = False
         if qw == None: 
             qw = QueueWriter(context, base_dir)
@@ -79,14 +80,41 @@ def enqueue(context, base_dir, filename, qw = None):
     return False
 
 def walk(context, base_dir):
+    oscar.log.info(u"Performing walk on %s ..." % base_dir.decode("utf-8"))
+    file_id_set = set()
     qw = QueueWriter(context, base_dir)
     for root, dirs, files in os.walk(base_dir):
         r = re.sub(r'^\/+', "", root[len(base_dir):])
         if r.startswith('.'): continue
         for file in files:
             filename = os.path.join(r, file)
-            enqueue(context, base_dir, filename, qw)
+            file_id = oscar.sha1(filename)
+            enqueue(context, base_dir, filename, file_id, qw)
+            file_id_set.add(file_id)
+            #oscar.log.debug("file_id:%s, count=%d" % (file_id, len(file_id_set)))
     qw.flush()
+
+    oscar.log.info(u"Performing cleanup on %s ..." % base_dir.decode("utf-8"))
+    offset = 0
+    total = 1
+    while offset < total:
+        with oscar.command(context, "select") as command:
+            command.add_argument("table", "Files")
+            command.add_argument("output_columns", "_id,_key,path,name")
+            command.add_argument("offset", str(offset))
+            result = json.loads(command.execute())
+        total = result[0][0][0]
+        rows=result[0][2:]
+        for row in rows:
+            _id,key,path,name = row[0],row[1],row[2],row[3]
+            if key not in file_id_set:
+                oscar.log.info(u"Missing file: %s(%s). remove from database" % (os.path.join(base_dir, path if path != "/" else "",name).decode("utf-8"), key))
+                with oscar.command(context, "delete") as command:
+                    command.add_argument("table", "Files")
+                    command.add_argument("id", str(_id))
+                    command.execute()
+        offset += len(rows)
+    oscar.log.info(u"%s Done." % base_dir.decode("utf-8"))
 
 def run(args):
     for base_dir in args.base_dir:

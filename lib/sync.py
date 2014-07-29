@@ -5,7 +5,7 @@ Created on 2014/06/25
 '''
 
 import os,getpass,tempfile,re,time
-import apscheduler.scheduler
+import apscheduler.schedulers.background,apscheduler.triggers.cron
 import oscar,samba,config,log
 
 oscar_dir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -66,7 +66,7 @@ def sync(base_dir):
     return True
 
 def setup_new_scheduler():
-    sched = apscheduler.scheduler.Scheduler()
+    sched = apscheduler.schedulers.background.BackgroundScheduler(coalesce=True)
     for path in map(lambda x:oscar.get_share(x).path, oscar.share_names()):
         syncday = config.get(path, "syncday")
         if not syncday or not isinstance(syncday, dict): continue
@@ -76,7 +76,7 @@ def setup_new_scheduler():
         dow = ','.join(map(lambda (x,y):x, filter(lambda (x,y):y, syncday.items())))
         hour, minute = map(lambda x:int(x), synctime.split(':'))
         oscar.log.debug(u"path=%s day=%s time=%02d:%02d" % (path.decode("utf-8"), dow, hour,minute))
-        sched.add_cron_job(sync, day_of_week=dow, hour=hour, minute=minute, args=[path])
+        sched.add_job(sync, apscheduler.triggers.cron.CronTrigger(day_of_week=dow, hour=hour, minute=minute), args=[path])
     return sched
 
 def schedule_sync():

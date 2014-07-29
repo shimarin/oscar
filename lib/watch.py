@@ -5,7 +5,7 @@ Created on 2014/06/25
 @author: shimarin
 '''
 import os,time,multiprocessing,logging
-import pyinotify,apscheduler.scheduler
+import pyinotify,apscheduler.schedulers.background,apscheduler.executors.pool,apscheduler.triggers.cron,apscheduler.triggers.interval
 import oscar,samba,walk,cleanup,consume
 
 oscar_dir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -13,7 +13,7 @@ _smb_conf = os.path.join(oscar_dir, "etc/smb.conf")
 _smb_conf_time = None
 
 def parser_setup(parser):
-    parser.add_argument("-w", "--walk-interval", type=int, default=3600)
+    parser.add_argument("-w", "--walk-interval", type=int, default=8)
     parser.add_argument("-c", "--consume-interval", type=int, default=60)
     parser.add_argument("-l", "--consume-limit", type=int, default=1000)
     parser.set_defaults(func=run,name="watch")
@@ -114,11 +114,7 @@ def perform_walk():
     for path in get_path_map():
         try:
             with oscar.context(path) as context:
-                oscar.log.info(u"Performing walk on %s..." % path.decode("utf-8"))
                 walk.walk(context, path)
-                oscar.log.info(u"Performing cleanup on %s..." % path.decode("utf-8"))
-                cleanup.cleanup(context, path)
-                oscar.log.info(u"Done cleanup on %s." % path.decode("utf-8"))
         except IOError:
             oscar.log.error("IOError (share deleted, perhaps)")
 
@@ -129,11 +125,12 @@ def perform_consume(limit):
 
 def run(args):
     oscar.set_share_registry(samba.ShareRegistry(_smb_conf))
-    sched = apscheduler.scheduler.Scheduler()
-    oscar.log.info("Adding walk/cleanup job at interval %s seconds" % args.walk_interval)
-    sched.add_interval_job(perform_walk, seconds=args.walk_interval)
-    oscar.log.info("Adding consume job at interval %s seconds" % args.consume_interval)
-    sched.add_interval_job(perform_consume, seconds=args.consume_interval, args=[args.consume_limit])
+    sched = apscheduler.schedulers.background.BackgroundScheduler(coalesce=True)
+    sched.add_executor(apscheduler.executors.pool.ProcessPoolExecutor())
+    oscar.log.info("Adding walk/cleanup job at interval %d hours" % args.walk_interval)
+    sched.add_job(perform_walk, apscheduler.triggers.interval.IntervalTrigger(hours=args.walk_interval))
+    oscar.log.info("Adding consume job at interval %d seconds" % args.consume_interval)
+    sched.add_job(perform_consume, apscheduler.triggers.interval.IntervalTrigger(seconds=args.consume_interval), args=[args.consume_limit])
     oscar.log.info("Starting job schedulers...")
     sched.start()
     try:

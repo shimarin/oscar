@@ -45,6 +45,12 @@ watch.parser_setup(subparsers.add_parser("watch"))
 
 args = parser.parse_args()
 
+# setup timezone name for tzlocal
+if os.path.exists("/etc/localtime") and not os.getenv("TZ"):
+    localtime = os.path.realpath("/etc/localtime")
+    if localtime.startswith("/usr/share/zoneinfo/"):
+        os.environ["TZ"] = localtime[20:]
+
 oscar.init()
 oscar.logger_init(args.name, args.verbose, args.log)
 

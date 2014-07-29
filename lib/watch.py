@@ -126,7 +126,7 @@ def perform_consume(limit):
 def run(args):
     oscar.set_share_registry(samba.ShareRegistry(_smb_conf))
     sched = apscheduler.schedulers.background.BackgroundScheduler(coalesce=True)
-    sched.add_executor(apscheduler.executors.pool.ProcessPoolExecutor())
+    sched.add_executor(apscheduler.executors.pool.ProcessPoolExecutor(3))
     oscar.log.info("Adding walk/cleanup job at interval %d hours" % args.walk_interval)
     sched.add_job(perform_walk, apscheduler.triggers.interval.IntervalTrigger(hours=args.walk_interval))
     oscar.log.info("Adding consume job at interval %d seconds" % args.consume_interval)

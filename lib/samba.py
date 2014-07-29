@@ -167,16 +167,17 @@ class UserRegistry(oscar.UserRegistry):
             return oscar.User(user.username, self._is_admin_user(self._acct_desc(user)))
 
     def _update_smbusers(self, passdb):
-        syetem_users = set(map(lambda x:x.pw_name.lower(), pwd.getpwall()))
+        system_users = set(map(lambda x:x.pw_name.lower(), pwd.getpwall()))
         usermap = {}
-        for user in filter(lambda x:x.username, passdb):
+        for user in passdb:
             # acct_descフィールド内のJSONデータを取得
             acct_desc = self._acct_desc(user)
-
+            system_user = acct_desc["system_user"] if "system_user" in acct_desc else None
             # 同名のUNIXユーザーが居る場合はmapしない
-            if ("system_user" not in acct_desc or acct_desc["system_user"].lower() == user.username.lower()) and user.username.lower() in system_users: continue
+            if (not system_user or system_user.lower() == user.username.lower()) and user.username.lower() in system_users: continue
 
-            system_user = acct_desc["system_user"] if "system_user" in acct_desc and acct_desc["system_user"] else getpass.getuser()
+            # そうでなければこのプロセスを走らせているユーザーにマップする
+            if not system_user: system_user = getpass.getuser()
             if system_user in usermap:
                 usermap[system_user].append(user.username)
             else:

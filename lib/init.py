@@ -37,9 +37,15 @@ def create_table(context):
         "column_create --table Terms --name files_path --flags COLUMN_INDEX|WITH_POSITION --type Files --source path_ft",
         "column_create --table Terms --name files_name --flags COLUMN_INDEX|WITH_POSITION --type Files --source name",
 
+        # Directory
+        "table_create --name Directory --flags TABLE_PAT_KEY --key_type ShortText",
+        "column_create --table Directory --name name --flags COLUMN_SCALAR --type ShortText",
+        "column_create --table Directory --name hash --flags COLUMN_SCALAR --type ShortText",
+
         # Paths(prefix:index of Files.path)
-        "table_create --name Paths --flags TABLE_PAT_KEY --key_type ShortText --normalizer NormalizerAuto",
+        "table_create --name Paths --flags TABLE_PAT_KEY --key_type ShortText",
         "column_create --table Paths --name prefix --flags COLUMN_INDEX --type Files --source path",
+        "column_create --table Paths --name dir_prefix --flags COLUMN_INDEX --type Directory --source name",
 
         # File queue
         "table_create --name FileQueue --flags TABLE_PAT_KEY --key_type ShortText",

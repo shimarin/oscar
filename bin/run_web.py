@@ -14,6 +14,4 @@ oscar.set_share_registry(samba.ShareRegistry(os.path.join(oscar_dir, "etc/smb.co
 # chmod g+rx /var/lib/samba/private
 # chmod g+rw /var/lib/samba/private/passdb.tdb
 oscar.set_user_registry(samba.UserRegistry("/var/lib/samba/private/passdb.tdb", os.path.join(oscar_dir, "etc/smbusers")))
-if os.path.isfile(os.path.join(oscar_dir, "lib/web/static/js/oscar.min.js")):
-    web.app.config["PRODUCTION"] = True
 web.app.run(host='0.0.0.0',debug=True)

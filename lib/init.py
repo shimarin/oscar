@@ -51,6 +51,10 @@ def create_table(context):
         "table_create --name FileQueue --flags TABLE_PAT_KEY --key_type ShortText",
         "column_create --table FileQueue --name name --flags COLUMN_SCALAR --type ShortText",
         "column_create --table FileQueue --name size --flags COLUMN_SCALAR --type UInt64",
+
+        # Directory queue
+        "table_create --name DirectoryQueue --flags TABLE_PAT_KEY --key_type ShortText",
+        "column_create --table DirectoryQueue --name name --flags COLUMN_SCALAR --type ShortText",
         
         # Configuration
         "table_create --name Config --flags TABLE_PAT_KEY --key_type ShortText",

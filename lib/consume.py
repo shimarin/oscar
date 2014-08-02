@@ -1,4 +1,4 @@
-import json,multiprocessing
+import json,multiprocessing,signal
 import oscar
 
 import add
@@ -32,10 +32,14 @@ def consume(base_dir, limit=100, concurrency = 1, id_prefix=None, utf8_check=Fal
 
     jobs = map(lambda x:(base_dir, x[0], x[2].encode("utf-8"), utf8_check), rows)
     if concurrency > 1:
-        pool = multiprocessing.Pool(processes=concurrency)
-        rst = sum(pool.map(add_file, jobs))
-        pool.close()
-        pool.join()
+        pool = multiprocessing.Pool(concurrency,lambda:signal.signal(signal.SIGINT, signal.SIG_IGN))
+        try:
+            rst = sum(pool.map(add_file, jobs))
+            pool.close()
+        except KeyboardInterrupt:
+            pool.terminate()
+        finally:
+            pool.join()
     else:
         rst = sum(map(add_file, jobs))
     return rst

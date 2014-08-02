@@ -5,7 +5,8 @@ import logging.handlers
 
 # USE="-cairo" emerge pygobject
 # http://packages.groonga.org/source/groonga-gobject/
-os.environ['GI_TYPELIB_PATH'] = '/usr/local/lib/girepository-1.0'
+local_lib = "/usr/local/lib" if os.path.isdir("/usr/local/lib") else "/usr/local/lib64"
+os.environ['GI_TYPELIB_PATH'] = '%s/girepository-1.0' % local_lib
 import gi.repository.Groonga    #@UnresolvedImport
 
 log = None

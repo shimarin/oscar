@@ -20,6 +20,7 @@ import extract
 import config
 import sync
 import watch
+import license
 
 __author__ = "Walbrix Corporation"
 __version__ = "0.0.1"
@@ -30,18 +31,9 @@ parser.add_argument("-l", "--log", default=None)
 
 subparsers = parser.add_subparsers()
 
-init.parser_setup(subparsers.add_parser("init"))
-add.parser_setup(subparsers.add_parser("add"))
-search.parser_setup(subparsers.add_parser("search"))
-web.parser_setup(subparsers.add_parser("web"))
-walk.parser_setup(subparsers.add_parser("walk"))
-consume.parser_setup(subparsers.add_parser("consume"))
-cleanup.parser_setup(subparsers.add_parser("cleanup"))
-truncate.parser_setup(subparsers.add_parser("truncate"))
-extract.parser_setup(subparsers.add_parser("extract"))
-config.parser_setup(subparsers.add_parser("config"))
-sync.parser_setup(subparsers.add_parser("sync"))
-watch.parser_setup(subparsers.add_parser("watch"))
+for m in [init,add,search,web,walk,consume,cleanup,truncate,extract,config,sync,watch,license]:
+    subparser = subparsers.add_parser(m.__name__)
+    m.parser_setup(subparser)
 
 args = parser.parse_args()
 

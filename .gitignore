@@ -4,7 +4,9 @@
 *.bak
 etc/smb.conf
 etc/smbusers
+etc/license.txt
 .settings
 oscar.min.js
 oscar.tar
+private.key
 

@@ -4,7 +4,7 @@ import os,json,time,re
 
 import flask
 
-import oscar,samba,search
+import oscar,samba,search,license
 import admin
 
 app = flask.Flask(__name__)
@@ -124,7 +124,7 @@ def share_index(share_name):
         return "Dir not found", 404
     check_access_credential(share)
 
-    return flask.render_template("share.html",share_id=share.name)
+    return flask.render_template("share.html",share_id=share.name,license=license.get_license_string())
 
 @app.route("/<share_name>/_info")
 def share_info(share_name):

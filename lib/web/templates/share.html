@@ -64,12 +64,17 @@
           </a>
           <small>{{row.size|number}}バイト {{row.mtime * 1000|date:'yyyy-MM-dd HH:mm'}}更新</small>
         </h4>
-	場所: <a ng-click="move_to(row.path)" href="">
+        場所: <a ng-click="move_to(row.path)" href="">
           <span ng-show="row.snippets.path.length > 0" ng-repeat="snippet in row.snippets.path"><span ng-bind-html="snippet"></span></span>
           <span ng-show="!row.snippets.path || row.snippets.path.length == 0">{{row.path}}</span>
         </a><br/>
-	<span ng-repeat="snippet in row.snippets.content">..<span ng-bind-html="snippet"></span>..</span>
+        <span ng-repeat="snippet in row.snippets.content">..<span ng-bind-html="snippet"></span>..</span>
       </div>
+      {%endraw%}{%if not license%}{%raw%}
+      <div ng-show="$index == 0" class="text-center" style="margin-top:1em;"><iframe src="http://blogparts.dmm.com/ranking?adid=eed7061f886cd1ee4aca80e33d41f4aa" height="150" width="400" scrolling="no" frameborder="0">
+        この部分は iframe 対応のブラウザで見てください。
+      </iframe></div>
+      {%endraw%}{%endif%}{%raw%}
     </div>
     <p class="text-center" ng-show="result.count > result.rows.length"><pagination ng-model="result.page" ng-change="pageChanged()" items-per-page="limit" max-size="10" boundary-links="true" total-items="result.count" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"></pagination></p>
     <div ng-show="result.count == 0">

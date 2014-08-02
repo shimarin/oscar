@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     {%if config.PRODUCTION%}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-    <script src="{{ url_for('static', filename='js/jquery.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-2.1.1.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/angular.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/angular-resource.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/angular-sanitize.min.js')}}"></script>
-    <script src="{{ url_for('static', filename='js/angular-locale_ja-jp.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/angular-locale_ja-jp.js')}}"></script>
     <script src="{{ url_for('static', filename='js/ui-bootstrap-tpls.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/oscar.min.js')}}"></script>
     {%else%}
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/latest/css/bootstrap.css">
-    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-resource.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.18/angular-sanitize.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.2.10/angular-locale_ja-jp.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular-resource.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular-sanitize.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.2.15/angular-locale_ja-jp.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.js"></script>
     <script src="{{ url_for('static', filename='js/oscar.js')}}"></script>
     {%endif%}

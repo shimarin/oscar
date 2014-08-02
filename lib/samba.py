@@ -57,16 +57,24 @@ class ShareRegistry(oscar.ShareRegistry):
     def _get_share(self, name, parser):
         if name in _ignoreable_sections: return None
         section = parser.get(name)
-        if not section: return None
+        if not section:
+            oscar.log.warn(u"Section %s not found" % name)
+            return None
         self._set_default_values(section)
         path = section[u"path"].encode("utf-8") # should be str
-        if not os.path.isdir(path): return None
+        if not os.path.isdir(path):
+            oscar.log.warn("Physical path %s not found" % path)
+            return None
+        if not os.path.isfile(oscar.get_database_name(path)):
+            oscar.log.warn("Path %s doesn't have a groonga database" % path)
+            return None
         guest_ok = section.as_bool(u"guest ok")
         writable = section.as_bool(u"writable")
         comment = section.get(u"comment")
         locking = section.as_bool(u"locking")
         valid_users = section.get(u"valid users")
         options = config.get(path)
+
         return oscar.Share(name, path, guest_ok=guest_ok, writable=writable, comment=comment,locking=locking,valid_users=valid_users,options=options)
 
     def get_share(self, name):
@@ -159,16 +167,17 @@ class UserRegistry(oscar.UserRegistry):
             return oscar.User(user.username, self._is_admin_user(self._acct_desc(user)))
 
     def _update_smbusers(self, passdb):
-        syetem_users = set(map(lambda x:x.pw_name.lower(), pwd.getpwall()))
+        system_users = set(map(lambda x:x.pw_name.lower(), pwd.getpwall()))
         usermap = {}
         for user in passdb:
             # acct_descフィールド内のJSONデータを取得
             acct_desc = self._acct_desc(user)
-
+            system_user = acct_desc["system_user"] if "system_user" in acct_desc else None
             # 同名のUNIXユーザーが居る場合はmapしない
-            if ("system_user" not in acct_desc or acct_desc["system_user"].lower() == user.username.lower()) and user.username.lower() in system_users: continue
+            if (not system_user or system_user.lower() == user.username.lower()) and user.username.lower() in system_users: continue
 
-            system_user = acct_desc["system_user"] if "system_user" in acct_desc and acct_desc["system_user"] else getpass.getuser()
+            # そうでなければこのプロセスを走らせているユーザーにマップする
+            if not system_user: system_user = getpass.getuser()
             if system_user in usermap:
                 usermap[system_user].append(user.username)
             else:

@@ -3,4 +3,4 @@ Copyright (c) 2013-2014 Walbrix Corporation
 The code is PROPRIETARY except modules which contain their own LICENSE.txt or equivalent.
 
 You MAY copy/modify the proprietary code for your own use.
-You MAY NOT redistribute the proprietary code.
+You MAY NOT redistribute the proprietary code with or without modification.
